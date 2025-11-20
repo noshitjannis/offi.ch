@@ -97,57 +97,36 @@
         }
     });
 
-    // Firmendaten
-    let companyName = "Offertino";
-    let companyAddress = "Offertenstrasse 1\n8000 Offer";
-    let companyEmail = "info@offertino.ch";
-    let companyPhone = "+41 44 123 45 67";
-    let companyWebsite = "www.offertino.ch";
-    let companyVatNumber = "CHE-123.456.789 MWST";
+    const PLACEHOLDERS = {
+        companyName: "Offertino",
+        companyAddress: "Offertenstrasse 1\n8000 Offer",
+        companyEmail: "info@offertino.ch",
+        companyPhone: "+41 44 123 45 67",
+        companyWebsite: "www.offertino.ch",
+        companyVatNumber: "CHE-123.456.789 MWST",
+        bankName: "Musterbank",
+        bankLocation: "CH-3030 Musterstadt",
+        bankAccount: "1111-1111.222",
+        bankIban: "CH99 0000 0000 0000 0000 9",
+        bankSwift: "ABCDEFGH12J",
+        customerName: "Kurt Musterkunde",
+        customerStreet: "Kundenstrasse 1",
+        customerZipCity: "CH-6396 Kundenwil",
+        offerNumber: "1234",
+        offerSubject: "Gegenstand der Offerte spezifizieren",
+        offerDate: new Date().toISOString().slice(0, 10),
+        requestDate: new Date().toISOString().slice(0, 10),
+        offerValidityDays: 30,
+        deliveryText: "nach Vereinbarung",
+        contactPerson: "Tino Offer",
+        contactEmail: "tino@offertino.ch",
+        contactPhone: "+41 44 765 43 21",
+        vatRate: 8.1,
+        discountPercent: 0,
+        discountLabel: "Rabatt",
+    };
 
-    // Firmenlogo
-    let companyLogo = "";
-    let logoError = "";
-    let isLogoDragActive = false;
-    /** @type {HTMLInputElement | null} */
-    let logoFileInput = null;
-
-    // Bankverbindung
-    let bankName = "Musterbank";
-    let bankLocation = "CH-3030 Musterstadt";
-    let bankAccount = "1111-1111.222";
-    let bankIban = "CH99 0000 0000 0000 0000 9";
-    let bankSwift = "ABCDEFGH12J";
-
-    // Kundendaten
-    let customerName = "Kurt Musterkunde";
-    let customerStreet = "Kundenstrasse 1";
-    let customerZipCity = "CH-6396 Kundenwil";
-
-    // Offerten-Metadaten
-    let offerNumber = "1234";
-    let offerSubject = "Gegenstand der Offerte spezifizieren";
-    let offerDate = new Date().toISOString().slice(0, 10); // Offertdatum
-    let requestDate = new Date().toISOString().slice(0, 10); // Datum der Anfrage
-    let offerValidityDays = 30;
-    let deliveryText = "nach Vereinbarung";
-
-    // Ansprechpartner
-    let contactPerson = "Tino Offer";
-    let contactEmail = "tino@offertino.ch";
-    let contactPhone = "+41 44 765 43 21";
-
-    // Steuer / Rabatt
-    let vatRate = 8.1; // MWST in Prozent
-    let discountPercent = 0;
-    let discountLabel = "Rabatt";
-
-    const FIRST_PAGE_POSITION_ROWS = 10;
-    const FOLLOWUP_PAGE_POSITION_ROWS = 18;
-    const TEMPLATE_STORAGE_KEY = "offertio-template";
-
-    // Positionen mit Artikelnummer
-    let positions = [
+    const POSITION_PLACEHOLDERS = [
         {
             articleNumber: "01",
             description: "Positionsbeschreibung 1",
@@ -161,6 +140,63 @@
             unitPrice: 180,
         },
     ];
+
+    // Firmendaten
+    let companyName = "";
+    let companyAddress = "";
+    let companyEmail = "";
+    let companyPhone = "";
+    let companyWebsite = "";
+    let companyVatNumber = "";
+
+    // Firmenlogo
+    let companyLogo = "";
+    let logoError = "";
+    let isLogoDragActive = false;
+    /** @type {HTMLInputElement | null} */
+    let logoFileInput = null;
+
+    // Bankverbindung
+    let bankName = "";
+    let bankLocation = "";
+    let bankAccount = "";
+    let bankIban = "";
+    let bankSwift = "";
+
+    // Kundendaten
+    let customerName = "";
+    let customerStreet = "";
+    let customerZipCity = "";
+
+    // Offerten-Metadaten
+    let offerNumber = "";
+    let offerSubject = "";
+    let offerDate = ""; // Offertdatum
+    let requestDate = ""; // Datum der Anfrage
+    let offerValidityDays = "";
+    let deliveryText = "";
+
+    // Ansprechpartner
+    let contactPerson = "";
+    let contactEmail = "";
+    let contactPhone = "";
+
+    // Steuer / Rabatt
+    let vatRate = "";
+    let discountPercent = "";
+    let discountLabel = "";
+
+    const FIRST_PAGE_POSITION_ROWS = 10;
+    const FOLLOWUP_PAGE_POSITION_ROWS = 18;
+    const TEMPLATE_STORAGE_KEY = "offertio-template";
+
+    // Positionen mit Artikelnummer
+    let positions = POSITION_PLACEHOLDERS.map(() => ({
+        articleNumber: "",
+        description: "",
+        quantity: "",
+        unitPrice: "",
+    }));
 
     /**
      * @typedef {"company" | "customer" | "offer" | "contact" | "positions"} AccordionSection
@@ -249,7 +285,7 @@
     function addPosition() {
         positions = [
             ...positions,
-            { articleNumber: "", description: "", quantity: 1, unitPrice: 0 },
+            { articleNumber: "", description: "", quantity: "", unitPrice: "" },
         ];
     }
 
@@ -258,22 +294,170 @@
     }
 
     // Berechnungen
-    $: subtotal = positions.reduce(
+    $: subtotal = resolvedPositions.reduce(
         (sum, p) => sum + Number(p.quantity || 0) * Number(p.unitPrice || 0),
         0,
     );
 
-    $: discountAmount = subtotal * (Number(discountPercent) / 100);
+    $: discountAmount = subtotal * (resolvedDiscountPercent / 100);
     $: subtotalAfterDiscount = subtotal - discountAmount;
 
-    $: vatAmount = subtotalAfterDiscount * (Number(vatRate) / 100);
+    $: vatAmount = subtotalAfterDiscount * (resolvedVatRate / 100);
     $: total = subtotalAfterDiscount + vatAmount;
     $: displayDiscountLabel =
-        (discountLabel && discountLabel.trim())
-            ? `${discountLabel.trim()} (${discountPercent} %)`
-            : `Rabatt ${discountPercent} %`;
+        resolvedDiscountLabel && resolvedDiscountLabel.trim()
+            ? `${resolvedDiscountLabel.trim()} (${resolvedDiscountPercent} %)`
+            : `Rabatt ${resolvedDiscountPercent} %`;
 
     const allowedLogoTypes = ["image/png", "image/jpeg"];
+
+    /**
+     * @template T
+     * @param {T | string} value
+     * @param {T} placeholder
+     * @returns {T}
+     */
+    function textOrPlaceholder(value, placeholder) {
+        if (typeof value === "string") {
+            return /** @type {T} */ (value.trim() ? value : placeholder);
+        }
+        return value ?? placeholder;
+    }
+
+    /**
+     * @param {string | number} value
+     * @param {string | number} placeholder
+     */
+    function numberOrPlaceholder(value, placeholder) {
+        const parsedValue = Number(value);
+        if (value !== "" && Number.isFinite(parsedValue)) {
+            return parsedValue;
+        }
+        const parsedPlaceholder = Number(placeholder);
+        return Number.isFinite(parsedPlaceholder) ? parsedPlaceholder : 0;
+    }
+
+    /**
+     * @param {number} index
+     */
+    function getPositionPlaceholder(index) {
+        return (
+            POSITION_PLACEHOLDERS[index] ?? {
+                articleNumber: String(index + 1).padStart(2, "0"),
+                description: "Positionsbeschreibung folgt",
+                quantity: 1,
+                unitPrice: 0,
+            }
+        );
+    }
+
+    $: resolvedCompanyName = textOrPlaceholder(
+        companyName,
+        PLACEHOLDERS.companyName,
+    );
+    $: resolvedCompanyAddress = textOrPlaceholder(
+        companyAddress,
+        PLACEHOLDERS.companyAddress,
+    );
+    $: resolvedCompanyEmail = textOrPlaceholder(
+        companyEmail,
+        PLACEHOLDERS.companyEmail,
+    );
+    $: resolvedCompanyPhone = textOrPlaceholder(
+        companyPhone,
+        PLACEHOLDERS.companyPhone,
+    );
+    $: resolvedCompanyWebsite = textOrPlaceholder(
+        companyWebsite,
+        PLACEHOLDERS.companyWebsite,
+    );
+    $: resolvedCompanyVatNumber = textOrPlaceholder(
+        companyVatNumber,
+        PLACEHOLDERS.companyVatNumber,
+    );
+
+    $: resolvedBankName = textOrPlaceholder(bankName, PLACEHOLDERS.bankName);
+    $: resolvedBankLocation = textOrPlaceholder(
+        bankLocation,
+        PLACEHOLDERS.bankLocation,
+    );
+    $: resolvedBankAccount = textOrPlaceholder(
+        bankAccount,
+        PLACEHOLDERS.bankAccount,
+    );
+    $: resolvedBankIban = textOrPlaceholder(bankIban, PLACEHOLDERS.bankIban);
+    $: resolvedBankSwift = textOrPlaceholder(bankSwift, PLACEHOLDERS.bankSwift);
+
+    $: resolvedCustomerName = textOrPlaceholder(
+        customerName,
+        PLACEHOLDERS.customerName,
+    );
+    $: resolvedCustomerStreet = textOrPlaceholder(
+        customerStreet,
+        PLACEHOLDERS.customerStreet,
+    );
+    $: resolvedCustomerZipCity = textOrPlaceholder(
+        customerZipCity,
+        PLACEHOLDERS.customerZipCity,
+    );
+
+    $: resolvedOfferNumber = textOrPlaceholder(
+        offerNumber,
+        PLACEHOLDERS.offerNumber,
+    );
+    $: resolvedOfferSubject = textOrPlaceholder(
+        offerSubject,
+        PLACEHOLDERS.offerSubject,
+    );
+    $: resolvedOfferDate = textOrPlaceholder(offerDate, PLACEHOLDERS.offerDate);
+    $: resolvedRequestDate = textOrPlaceholder(
+        requestDate,
+        PLACEHOLDERS.requestDate,
+    );
+    $: resolvedOfferValidityDays = numberOrPlaceholder(
+        offerValidityDays,
+        PLACEHOLDERS.offerValidityDays,
+    );
+    $: resolvedDeliveryText = textOrPlaceholder(
+        deliveryText,
+        PLACEHOLDERS.deliveryText,
+    );
+
+    $: resolvedContactPerson = textOrPlaceholder(
+        contactPerson,
+        PLACEHOLDERS.contactPerson,
+    );
+    $: resolvedContactEmail = textOrPlaceholder(
+        contactEmail,
+        PLACEHOLDERS.contactEmail,
+    );
+    $: resolvedContactPhone = textOrPlaceholder(
+        contactPhone,
+        PLACEHOLDERS.contactPhone,
+    );
+
+    $: resolvedVatRate = numberOrPlaceholder(vatRate, PLACEHOLDERS.vatRate);
+    $: resolvedDiscountPercent = numberOrPlaceholder(
+        discountPercent,
+        PLACEHOLDERS.discountPercent,
+    );
+    $: resolvedDiscountLabel = textOrPlaceholder(
+        discountLabel,
+        PLACEHOLDERS.discountLabel,
+    );
+
+    $: resolvedPositions = positions.map((pos, index) => {
+        const placeholder = getPositionPlaceholder(index);
+        return {
+            articleNumber: textOrPlaceholder(
+                pos.articleNumber,
+                placeholder.articleNumber,
+            ),
+            description: textOrPlaceholder(pos.description, placeholder.description),
+            quantity: numberOrPlaceholder(pos.quantity, placeholder.quantity),
+            unitPrice: numberOrPlaceholder(pos.unitPrice, placeholder.unitPrice),
+        };
+    });
 
     /**
      * @param {File} file
@@ -342,45 +526,45 @@
     function downloadJson() {
         const offer = {
             company: {
-                name: companyName,
-                address: companyAddress,
-                email: companyEmail,
-                phone: companyPhone,
-                website: companyWebsite,
-                vatNumber: companyVatNumber,
+                name: resolvedCompanyName,
+                address: resolvedCompanyAddress,
+                email: resolvedCompanyEmail,
+                phone: resolvedCompanyPhone,
+                website: resolvedCompanyWebsite,
+                vatNumber: resolvedCompanyVatNumber,
                 logo: companyLogo,
                 bank: {
-                    name: bankName,
-                    location: bankLocation,
-                    account: bankAccount,
-                    iban: bankIban,
-                    swift: bankSwift,
+                    name: resolvedBankName,
+                    location: resolvedBankLocation,
+                    account: resolvedBankAccount,
+                    iban: resolvedBankIban,
+                    swift: resolvedBankSwift,
                 },
             },
             customer: {
-                name: customerName,
-                street: customerStreet,
-                zipCity: customerZipCity,
+                name: resolvedCustomerName,
+                street: resolvedCustomerStreet,
+                zipCity: resolvedCustomerZipCity,
             },
             offerMeta: {
-                number: offerNumber,
-                subject: offerSubject,
-                offerDate,
-                requestDate,
-                validityDays: offerValidityDays,
-                delivery: deliveryText,
+                number: resolvedOfferNumber,
+                subject: resolvedOfferSubject,
+                offerDate: resolvedOfferDate,
+                requestDate: resolvedRequestDate,
+                validityDays: resolvedOfferValidityDays,
+                delivery: resolvedDeliveryText,
                 contact: {
-                    person: contactPerson,
-                    email: contactEmail,
-                    phone: contactPhone,
+                    person: resolvedContactPerson,
+                    email: resolvedContactEmail,
+                    phone: resolvedContactPhone,
                 },
             },
             tax: {
-                vatRate,
-                discountPercent,
-                discountLabel,
+                vatRate: resolvedVatRate,
+                discountPercent: resolvedDiscountPercent,
+                discountLabel: resolvedDiscountLabel,
             },
-            positions,
+            positions: resolvedPositions,
             totals: {
                 subtotal,
                 discountAmount,
@@ -413,7 +597,7 @@
         /** @type {any} */
         const opt = {
             margin: 0, // <--- WICHTIG: kein zusätzlicher Rand
-            filename: `${offerNumber || "offerte"}_${companyName || "offertio"}.pdf`,
+            filename: `${resolvedOfferNumber || "offerte"}_${resolvedCompanyName || "offertio"}.pdf`,
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0 },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
@@ -512,7 +696,7 @@
         return chunks;
     }
 
-    $: positionChunks = chunkPositions(positions);
+    $: positionChunks = chunkPositions(resolvedPositions);
     $: totalPages = positionChunks.length || 1;
 
     /**
@@ -626,58 +810,93 @@
 
                         <label>
                             Firmenname
-                            <input bind:value={companyName} />
+                            <input
+                                bind:value={companyName}
+                                placeholder={PLACEHOLDERS.companyName}
+                            />
                         </label>
                         <label>
                             Adresse
-                            <textarea rows="2" bind:value={companyAddress}></textarea>
+                            <textarea
+                                rows="2"
+                                bind:value={companyAddress}
+                                placeholder={PLACEHOLDERS.companyAddress}
+                            ></textarea>
                         </label>
 
                         <label>
                             E-Mail
-                            <input type="email" bind:value={companyEmail} />
+                            <input
+                                type="email"
+                                bind:value={companyEmail}
+                                placeholder={PLACEHOLDERS.companyEmail}
+                            />
                         </label>
 
                         <label>
                             Telefon
-                            <input bind:value={companyPhone} />
+                            <input
+                                bind:value={companyPhone}
+                                placeholder={PLACEHOLDERS.companyPhone}
+                            />
                         </label>
 
                         <label>
                             Website
-                            <input bind:value={companyWebsite} />
+                            <input
+                                bind:value={companyWebsite}
+                                placeholder={PLACEHOLDERS.companyWebsite}
+                            />
                         </label>
 
                         <label>
                             MWST-Nummer
-                            <input bind:value={companyVatNumber} />
+                            <input
+                                bind:value={companyVatNumber}
+                                placeholder={PLACEHOLDERS.companyVatNumber}
+                            />
                         </label>
 
                         <h4>Bankverbindung</h4>
 
                         <label>
                             Bankname
-                            <input bind:value={bankName} />
+                            <input
+                                bind:value={bankName}
+                                placeholder={PLACEHOLDERS.bankName}
+                            />
                         </label>
 
                         <label>
                             Ort
-                            <input bind:value={bankLocation} />
+                            <input
+                                bind:value={bankLocation}
+                                placeholder={PLACEHOLDERS.bankLocation}
+                            />
                         </label>
 
                         <label>
                             Kontonummer
-                            <input bind:value={bankAccount} />
+                            <input
+                                bind:value={bankAccount}
+                                placeholder={PLACEHOLDERS.bankAccount}
+                            />
                         </label>
 
                         <label>
                             IBAN
-                            <input bind:value={bankIban} />
+                            <input
+                                bind:value={bankIban}
+                                placeholder={PLACEHOLDERS.bankIban}
+                            />
                         </label>
 
                         <label>
                             SWIFT-Code
-                            <input bind:value={bankSwift} />
+                            <input
+                                bind:value={bankSwift}
+                                placeholder={PLACEHOLDERS.bankSwift}
+                            />
                         </label>
 
                         <div class="accordion-footer">
@@ -712,17 +931,26 @@
                     <div class="accordion-content" id="accordion-customer">
                         <label>
                             Name / Firma
-                            <input bind:value={customerName} />
+                            <input
+                                bind:value={customerName}
+                                placeholder={PLACEHOLDERS.customerName}
+                            />
                         </label>
 
                         <label>
                             Strasse
-                            <input bind:value={customerStreet} />
+                            <input
+                                bind:value={customerStreet}
+                                placeholder={PLACEHOLDERS.customerStreet}
+                            />
                         </label>
 
                         <label>
                             PLZ / Ort
-                            <input bind:value={customerZipCity} />
+                            <input
+                                bind:value={customerZipCity}
+                                placeholder={PLACEHOLDERS.customerZipCity}
+                            />
                         </label>
 
                         <div class="accordion-footer">
@@ -764,28 +992,47 @@
                     <div class="accordion-content" id="accordion-offer">
                         <label>
                             Offerte-Nr.
-                            <input bind:value={offerNumber} />
+                            <input
+                                bind:value={offerNumber}
+                                placeholder={PLACEHOLDERS.offerNumber}
+                            />
                         </label>
 
                         <label>
                             Betreff / Gegenstand der Offerte
-                            <input bind:value={offerSubject} />
+                            <input
+                                bind:value={offerSubject}
+                                placeholder={PLACEHOLDERS.offerSubject}
+                            />
                         </label>
 
                         <label>
                             Offertdatum
-                            <input type="date" bind:value={offerDate} />
+                            <input
+                                type="date"
+                                bind:value={offerDate}
+                                placeholder={PLACEHOLDERS.offerDate}
+                            />
                         </label>
 
                         <label>
                             Datum der Anfrage
-                            <input type="date" bind:value={requestDate} />
+                            <input
+                                type="date"
+                                bind:value={requestDate}
+                                placeholder={PLACEHOLDERS.requestDate}
+                            />
                         </label>
 
                         <div class="grid-2">
                             <label>
                                 MWST in %
-                                <input type="number" step="0.1" bind:value={vatRate} />
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    bind:value={vatRate}
+                                    placeholder={PLACEHOLDERS.vatRate}
+                                />
                             </label>
 
                             <label>
@@ -794,6 +1041,7 @@
                                     type="number"
                                     step="0.1"
                                     bind:value={discountPercent}
+                                    placeholder={PLACEHOLDERS.discountPercent}
                                 />
                             </label>
                         </div>
@@ -802,7 +1050,7 @@
                             Rabatt-Bezeichnung
                             <input
                                 bind:value={discountLabel}
-                                placeholder="z.B. Friends & Family Rabatt"
+                                placeholder={PLACEHOLDERS.discountLabel}
                             />
                         </label>
 
@@ -813,12 +1061,16 @@
                                     type="number"
                                     min="1"
                                     bind:value={offerValidityDays}
+                                    placeholder={PLACEHOLDERS.offerValidityDays}
                                 />
                             </label>
 
                             <label>
                                 Lieferfrist
-                                <input bind:value={deliveryText} />
+                                <input
+                                    bind:value={deliveryText}
+                                    placeholder={PLACEHOLDERS.deliveryText}
+                                />
                             </label>
                         </div>
 
@@ -861,17 +1113,27 @@
                     <div class="accordion-content" id="accordion-contact">
                         <label>
                             Name
-                            <input bind:value={contactPerson} />
+                            <input
+                                bind:value={contactPerson}
+                                placeholder={PLACEHOLDERS.contactPerson}
+                            />
                         </label>
 
                         <label>
                             E-Mail
-                            <input type="email" bind:value={contactEmail} />
+                            <input
+                                type="email"
+                                bind:value={contactEmail}
+                                placeholder={PLACEHOLDERS.contactEmail}
+                            />
                         </label>
 
                         <label>
                             Telefon
-                            <input bind:value={contactPhone} />
+                            <input
+                                bind:value={contactPhone}
+                                placeholder={PLACEHOLDERS.contactPhone}
+                            />
                         </label>
 
                         <div class="accordion-footer">
@@ -912,15 +1174,16 @@
                 {#if accordionState.positions}
                     <div class="accordion-content" id="accordion-positions">
                         {#each positions as pos, index}
+                            {@const positionPlaceholder = getPositionPlaceholder(index)}
                             <div class="position-row">
                                 <input
                                     class="pos-artnr"
-                                    placeholder="Art.-Nr."
+                                    placeholder={positionPlaceholder.articleNumber}
                                     bind:value={pos.articleNumber}
                                 />
                                 <input
                                     class="pos-desc"
-                                    placeholder="Beschreibung"
+                                    placeholder={positionPlaceholder.description}
                                     bind:value={pos.description}
                                 />
                                 <input
@@ -928,7 +1191,7 @@
                                     type="number"
                                     min="0"
                                     step="0.5"
-                                    placeholder="Menge"
+                                    placeholder={positionPlaceholder.quantity}
                                     bind:value={pos.quantity}
                                 />
                                 <input
@@ -936,7 +1199,7 @@
                                     type="number"
                                     min="0"
                                     step="1"
-                                    placeholder="Einzelpreis"
+                                    placeholder={positionPlaceholder.unitPrice}
                                     bind:value={pos.unitPrice}
                                 />
                                 <button
@@ -1037,53 +1300,53 @@
                                     </div>
                                     <div class="sender-contact">
                                         <div class="sender-address">
-                                            <strong>{companyName}</strong><br />
-                                            {#each addressLines(companyAddress) as line}
+                                            <strong>{resolvedCompanyName}</strong><br />
+                                            {#each addressLines(resolvedCompanyAddress) as line}
                                                 {line}<br />
                                             {/each}
                                         </div>
-                                        <div>{companyEmail}</div>
-                                        <div>{companyPhone}</div>
-                                        <div>{companyWebsite}</div>
+                                        <div>{resolvedCompanyEmail}</div>
+                                        <div>{resolvedCompanyPhone}</div>
+                                        <div>{resolvedCompanyWebsite}</div>
                                     </div>
                                 </header>
 
                                 <div class="customer-block">
-                                    <strong>{customerName}</strong>
-                                    <div>{customerStreet}</div>
-                                    <div>{customerZipCity}</div>
+                                    <strong>{resolvedCustomerName}</strong>
+                                    <div>{resolvedCustomerStreet}</div>
+                                    <div>{resolvedCustomerZipCity}</div>
                                 </div>
 
                                 <table class="offer-meta">
                                     <tbody>
                                         <tr>
                                             <td>Offerte Nr.:</td>
-                                            <td>{offerNumber}</td>
+                                            <td>{resolvedOfferNumber}</td>
                                             <td>Ansprechpartner:</td>
-                                            <td>{contactPerson}</td>
+                                            <td>{resolvedContactPerson}</td>
                                         </tr>
                                         <tr>
                                             <td>Datum:</td>
-                                            <td>{formatIsoDate(offerDate)}</td>
+                                            <td>{formatIsoDate(resolvedOfferDate)}</td>
                                             <td>E-Mail:</td>
-                                            <td>{contactEmail}</td>
+                                            <td>{resolvedContactEmail}</td>
                                         </tr>
                                         <tr>
                                             <td></td>
                                             <td></td>
                                             <td>Telefon:</td>
-                                            <td>{contactPhone}</td>
+                                            <td>{resolvedContactPhone}</td>
                                         </tr>
                                     </tbody>
                                 </table>
                                 <div class="meta-spacer"></div>
 
-                                <h3 class="offer-title">{offerSubject}</h3>
+                                <h3 class="offer-title">{resolvedOfferSubject}</h3>
                                 <p class="intro">
                                     Sehr geehrte Damen und Herren
                                 </p>
                                 <p class="intro">
-                                    Vielen Dank für Ihre Offertenanfrage vom {formatIsoDate(requestDate)}.
+                                    Vielen Dank für Ihre Offertenanfrage vom {formatIsoDate(resolvedRequestDate)}.
                                     Gerne unterbreiten Ihnen unser Angebot wie folgt:
                                 </p>
                                 <div class="intro-spacer"></div>
@@ -1130,7 +1393,7 @@
                                             <span>Zwischensumme</span>
                                             <span>{formatCurrency(subtotal)}</span>
                                         </div>
-                                        {#if Number(discountPercent) > 0}
+                                        {#if resolvedDiscountPercent > 0}
                                             <div class="row">
                                                 <span>{displayDiscountLabel}</span>
                                                 <span>-{formatCurrency(discountAmount)}</span>
@@ -1141,7 +1404,7 @@
                                             <span>{formatCurrency(subtotalAfterDiscount)}</span>
                                         </div>
                                         <div class="row">
-                                            <span>MWST {vatRate}%</span>
+                                            <span>MWST {resolvedVatRate}%</span>
                                             <span>{formatCurrency(vatAmount)}</span>
                                         </div>
                                         <div class="row total">
@@ -1151,13 +1414,13 @@
                                     </div>
                                     <div class="closing">
                                         Freundliche Gruesse<br />
-                                        <b>{contactPerson}</b><br />
-                                        <b>{companyName}</b>
+                                        <b>{resolvedContactPerson}</b><br />
+                                        <b>{resolvedCompanyName}</b>
                                     </div>
                                     <div class="note">
-                                        Mehrwertsteuer: {companyVatNumber}
-                                        Bankverbindung: {bankName}, {bankLocation} · Konto: {bankAccount} · IBAN:
-                                        {bankIban} · SWIFT: {bankSwift}
+                                        Mehrwertsteuer: {resolvedCompanyVatNumber}
+                                        Bankverbindung: {resolvedBankName}, {resolvedBankLocation} · Konto: {resolvedBankAccount} · IBAN:
+                                        {resolvedBankIban} · SWIFT: {resolvedBankSwift}
                                     </div>
                                 {:else}
                                     <div class="note">Fortsetzung auf der nächsten Seite</div>
