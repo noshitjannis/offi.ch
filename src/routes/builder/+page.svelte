@@ -384,31 +384,30 @@
         URL.revokeObjectURL(url);
     }
 
-    function downloadPdf() {
-    if (typeof window === "undefined" || !html2pdf) return;
+    async function downloadPdf() {
+        if (typeof window === "undefined" || !html2pdf) return;
 
-    const element = document.getElementById("pdf-preview");
-    if (!element) return;
+        const element = document.getElementById("pdf-preview");
+        if (!element) return;
 
-    isExporting = true;
+        isExporting = true;
+        await tick(); // wait for exporting styles (scale 1, no transform jitter)
 
-    /** @type {any} */
-    const opt = {
-        margin: 0, // <--- WICHTIG: kein zusätzlicher Rand
-        filename: "offerte-offertio.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 3, useCORS: true },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    };
+        /** @type {any} */
+        const opt = {
+            margin: 0, // <--- WICHTIG: kein zusätzlicher Rand
+            filename: `${offerNumber || "offerte"}_${companyName || "offertio"}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0 },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        };
 
-    html2pdf()
-        .set(opt)
-        .from(element)
-        .save()
-        .finally(() => {
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } finally {
             isExporting = false;
-        });
-}
+        }
+    }
 
     /**
      * @param {typeof positions} list
