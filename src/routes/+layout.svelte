@@ -17,7 +17,7 @@
           <a href="/builder">Builder</a>
         </nav>
 
-        <a class="nav-cta" href="/builder">Offerte erstellen</a>
+        <a class="nav-cta" href="/login">Offerte erstellen</a>
       </div>
     </div>
   </header>
@@ -32,17 +32,21 @@
     --content-max-width: 960px;
   }
 
-  .app {
-    min-height: 100vh;
+  :global(body) {
+    margin: 0;
     background: #f5f5f7;
     color: #111827;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
+  .app {
+    min-height: 100vh;
+  }
+
   .header {
     background: transparent;
     color: #ffffff;
-    padding: 1.5rem 0 1.75rem;
+    padding: 0.75rem 0 1.25rem;
   }
 
   .header-inner {
@@ -123,7 +127,7 @@
 
   .main {
     max-width: var(--content-max-width);
-    margin: 1.5rem auto 3rem;
+    margin: 1rem auto 3rem;
     padding: 0 1rem;
   }
 </style>
