@@ -1,17 +1,109 @@
 <script>
+    import { goto } from "$app/navigation";
+
+    const TEMPLATE_STORAGE_KEY = "offertio-template";
+    const requiredPaths = [
+        "company.name",
+        "company.address",
+        "company.email",
+        "company.phone",
+        "company.website",
+        "company.vatNumber",
+        "company.bank.name",
+        "company.bank.location",
+        "company.bank.account",
+        "company.bank.iban",
+        "company.bank.swift",
+        "customer.name",
+        "customer.street",
+        "customer.zipCity",
+        "offerMeta.number",
+        "offerMeta.subject",
+        "offerMeta.offerDate",
+        "offerMeta.requestDate",
+        "offerMeta.validityDays",
+        "offerMeta.delivery",
+        "offerMeta.contact.person",
+        "offerMeta.contact.email",
+        "offerMeta.contact.phone",
+        "tax.vatRate",
+        "tax.discountPercent",
+        "tax.discountLabel",
+        "positions",
+    ];
+
     let isDragging = false;
     let fileName = "";
+    let uploadError = "";
+    let isProcessing = false;
     /** @type {HTMLInputElement | null} */
     let fileInput = null;
 
-    function handleFiles(files) {
-        const file = files?.[0];
-        fileName = file ? file.name : "";
+    function getValueAtPath(object, path) {
+        return path.split(".").reduce((current, key) => {
+            if (current && typeof current === "object" && key in current) {
+                return current[key];
+            }
+            return undefined;
+        }, object);
     }
 
-    function handleDrop(event) {
+    function isValidTemplate(data) {
+        if (!data || typeof data !== "object") return false;
+
+        for (const path of requiredPaths) {
+            const value = getValueAtPath(data, path);
+            if (value === undefined || value === null || value === "") {
+                return false;
+            }
+        }
+
+        if (!Array.isArray(data.positions) || !data.positions.length) return false;
+
+        return data.positions.every(
+            (pos) =>
+                pos &&
+                typeof pos.description === "string" &&
+                "articleNumber" in pos &&
+                "quantity" in pos &&
+                "unitPrice" in pos,
+        );
+    }
+
+    async function processTemplateFile(file) {
+        uploadError = "";
+        isProcessing = true;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+
+            if (!isValidTemplate(data)) {
+                uploadError = "Die Datei entspricht nicht dem Offertino-Format.";
+                return;
+            }
+
+            localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(data));
+            await goto("/builder");
+        } catch (error) {
+            console.error("Fehler beim Verarbeiten der Vorlage", error);
+            uploadError =
+                "Die Vorlage konnte nicht gelesen werden. Bitte eine gültige Offertino-JSON-Datei nutzen.";
+        } finally {
+            isProcessing = false;
+        }
+    }
+
+    async function handleFiles(files) {
+        const file = files?.[0];
+        fileName = file ? file.name : "";
+        if (file) {
+            await processTemplateFile(file);
+        }
+    }
+
+    async function handleDrop(event) {
         isDragging = false;
-        handleFiles(event.dataTransfer?.files);
+        await handleFiles(event.dataTransfer?.files);
     }
 
     function handleDragOver() {
@@ -26,8 +118,8 @@
         fileInput?.click();
     }
 
-    function handleFileSelect(event) {
-        handleFiles(event.currentTarget.files);
+    async function handleFileSelect(event) {
+        await handleFiles(event.currentTarget.files);
     }
 
     function handleKeyActivate(event) {
@@ -67,30 +159,42 @@
             <div
                 class="dropzone"
                 class:dragging={isDragging}
+                aria-busy={isProcessing}
                 on:drop|preventDefault|stopPropagation={handleDrop}
                 on:dragover|preventDefault|stopPropagation={handleDragOver}
                 on:dragleave|preventDefault|stopPropagation={handleDragLeave}
                 role="button"
                 tabindex="0"
                 on:click={triggerBrowse}
-        on:keydown={handleKeyActivate}
-    >
-        <input
-            type="file"
-            accept="application/json"
-            aria-label="JSON-Datei auswählen"
-            bind:this={fileInput}
-            on:change={handleFileSelect}
-        />
-        <span class="drop-icon" aria-hidden="true">⬆</span>
-        <div class="drop-text">
-            <span class="drop-title">JSON-Datei hier ablegen</span>
-            <span class="drop-sub">{fileName ? fileName : "oder klicken zum Auswählen"}</span>
-        </div>
-    </div>
+                on:keydown={handleKeyActivate}
+            >
+                <input
+                    type="file"
+                    accept="application/json"
+                    aria-label="JSON-Datei auswählen"
+                    bind:this={fileInput}
+                    on:change={handleFileSelect}
+                />
+                <span class="drop-icon" aria-hidden="true">⬆</span>
+                <div class="drop-text">
+                    <span class="drop-title">JSON-Datei hier ablegen</span>
+                    <span class="drop-sub"
+                        >{fileName ? fileName : "oder klicken zum Auswählen"}</span
+                    >
+                </div>
+            </div>
 
-            <button class="panel-button" type="button" on:click={triggerBrowse}>
-                Vorlage hochladen
+            {#if uploadError}
+                <p class="error-text" role="alert">{uploadError}</p>
+            {/if}
+
+            <button
+                class="panel-button"
+                type="button"
+                on:click={triggerBrowse}
+                disabled={isProcessing}
+            >
+                {isProcessing ? "Wird geprüft..." : "Vorlage hochladen"}
             </button>
         </div>
 
@@ -312,6 +416,18 @@
 
     .panel-button.primary:hover {
         box-shadow: 0 4px 12px rgba(6, 78, 59, 0.22);
+    }
+
+    .panel-button:disabled {
+        background: #cbd5e1;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+
+    .error-text {
+        margin: 0;
+        color: #b91c1c;
+        font-weight: 700;
     }
 
     @media (max-width: 640px) {

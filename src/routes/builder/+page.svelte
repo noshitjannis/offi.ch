@@ -82,6 +82,21 @@
         };
     });
 
+    onMount(() => {
+        if (typeof localStorage === "undefined") return;
+        const stored = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+        if (!stored) return;
+
+        try {
+            const template = JSON.parse(stored);
+            applyTemplateData(template);
+        } catch (error) {
+            console.error("Vorlage konnte nicht geladen werden", error);
+        } finally {
+            localStorage.removeItem(TEMPLATE_STORAGE_KEY);
+        }
+    });
+
     // Firmendaten
     let companyName = "Offertino";
     let companyAddress = "Offertenstrasse 1\n8000 Offer";
@@ -129,6 +144,7 @@
 
     const FIRST_PAGE_POSITION_ROWS = 10;
     const FOLLOWUP_PAGE_POSITION_ROWS = 18;
+    const TEMPLATE_STORAGE_KEY = "offertio-template";
 
     // Positionen mit Artikelnummer
     let positions = [
@@ -332,6 +348,7 @@
                 phone: companyPhone,
                 website: companyWebsite,
                 vatNumber: companyVatNumber,
+                logo: companyLogo,
                 bank: {
                     name: bankName,
                     location: bankLocation,
@@ -406,6 +423,72 @@
             await html2pdf().set(opt).from(element).save();
         } finally {
             isExporting = false;
+        }
+    }
+
+    function applyTemplateData(template) {
+        if (!template || typeof template !== "object") return;
+
+        const company = template.company || {};
+        companyName = company.name ?? companyName;
+        companyAddress = company.address ?? companyAddress;
+        companyEmail = company.email ?? companyEmail;
+        companyPhone = company.phone ?? companyPhone;
+        companyWebsite = company.website ?? companyWebsite;
+        companyVatNumber = company.vatNumber ?? companyVatNumber;
+        if (company.logo) {
+            companyLogo = company.logo;
+        }
+
+        const bank = company.bank || {};
+        bankName = bank.name ?? bankName;
+        bankLocation = bank.location ?? bankLocation;
+        bankAccount = bank.account ?? bankAccount;
+        bankIban = bank.iban ?? bankIban;
+        bankSwift = bank.swift ?? bankSwift;
+
+        const customer = template.customer || {};
+        customerName = customer.name ?? customerName;
+        customerStreet = customer.street ?? customerStreet;
+        customerZipCity = customer.zipCity ?? customerZipCity;
+
+        const offerMetaData = template.offerMeta || {};
+        offerNumber = offerMetaData.number ?? offerNumber;
+        offerSubject = offerMetaData.subject ?? offerSubject;
+        offerDate = offerMetaData.offerDate ?? offerDate;
+        requestDate = offerMetaData.requestDate ?? requestDate;
+
+        const parsedValidity = Number(offerMetaData.validityDays);
+        offerValidityDays = Number.isFinite(parsedValidity)
+            ? parsedValidity
+            : offerValidityDays;
+
+        deliveryText = offerMetaData.delivery ?? deliveryText;
+
+        const contact = offerMetaData.contact || {};
+        contactPerson = contact.person ?? contactPerson;
+        contactEmail = contact.email ?? contactEmail;
+        contactPhone = contact.phone ?? contactPhone;
+
+        const tax = template.tax || {};
+        const parsedVat = Number(tax.vatRate);
+        vatRate = Number.isFinite(parsedVat) ? parsedVat : vatRate;
+        const parsedDiscount = Number(tax.discountPercent);
+        discountPercent = Number.isFinite(parsedDiscount)
+            ? parsedDiscount
+            : discountPercent;
+        discountLabel = tax.discountLabel ?? discountLabel;
+
+        if (Array.isArray(template.positions)) {
+            const mapped = template.positions.map((pos) => ({
+                articleNumber: pos?.articleNumber ?? "",
+                description: pos?.description ?? "",
+                quantity: Number(pos?.quantity ?? 0) || 0,
+                unitPrice: Number(pos?.unitPrice ?? 0) || 0,
+            }));
+            if (mapped.length) {
+                positions = mapped;
+            }
         }
     }
 
@@ -917,7 +1000,7 @@
                         <div class="card-icon" aria-hidden="true">⬜</div>
                         <h4>JSON herunterladen</h4>
                         <p>
-                            Exportieren Sie Ihre Offerte als JSON-Template damit Sie beim nächsten Mal schneller sind.
+                            Exportieren Sie Ihre Offerte als JSON-Vorlage damit Sie beim nächsten Mal schneller sind.
                         </p>
                         <button type="button" class="card-button" on:click={downloadJson}>
                             JSON herunterladen
