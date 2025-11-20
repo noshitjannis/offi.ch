@@ -156,49 +156,42 @@
                 <p>Laden Sie eine JSON-Datei einer ausgefüllten Offerte hoch.</p>
             </div>
 
-            <div
-                class="dropzone"
-                class:dragging={isDragging}
-                aria-busy={isProcessing}
-                on:drop|preventDefault|stopPropagation={handleDrop}
-                on:dragover|preventDefault|stopPropagation={handleDragOver}
-                on:dragleave|preventDefault|stopPropagation={handleDragLeave}
-                role="button"
-                tabindex="0"
-                on:click={triggerBrowse}
-                on:keydown={handleKeyActivate}
-            >
-                <input
-                    type="file"
-                    accept="application/json"
-                    aria-label="JSON-Datei auswählen"
-                    bind:this={fileInput}
-                    on:change={handleFileSelect}
-                />
-                <span class="drop-icon" aria-hidden="true">⬆</span>
-                <div class="drop-text">
-                    <span class="drop-title">JSON-Datei hier ablegen</span>
-                    <span class="drop-sub"
-                        >{fileName ? fileName : "oder klicken zum Auswählen"}</span
-                    >
+            <div class="dropzone-block">
+                <div
+                    class="dropzone"
+                    class:dragging={isDragging}
+                    aria-busy={isProcessing}
+                    on:drop|preventDefault|stopPropagation={handleDrop}
+                    on:dragover|preventDefault|stopPropagation={handleDragOver}
+                    on:dragleave|preventDefault|stopPropagation={handleDragLeave}
+                    role="button"
+                    tabindex="0"
+                    on:click={triggerBrowse}
+                    on:keydown={handleKeyActivate}
+                >
+                    <input
+                        type="file"
+                        accept="application/json"
+                        aria-label="JSON-Datei auswählen"
+                        bind:this={fileInput}
+                        on:change={handleFileSelect}
+                    />
+                    <span class="drop-icon" aria-hidden="true">⬆</span>
+                    <div class="drop-text">
+                        <span class="drop-title">JSON-Datei hier ablegen</span>
+                        <span class="drop-sub"
+                            >{fileName ? fileName : "oder klicken zum Auswählen"}</span
+                        >
+                    </div>
                 </div>
+
+                {#if uploadError}
+                    <p class="error-text" role="alert">{uploadError}</p>
+                {/if}
             </div>
-
-            {#if uploadError}
-                <p class="error-text" role="alert">{uploadError}</p>
-            {/if}
-
-            <button
-                class="panel-button"
-                type="button"
-                on:click={triggerBrowse}
-                disabled={isProcessing}
-            >
-                {isProcessing ? "Wird geprüft..." : "Vorlage hochladen"}
-            </button>
         </div>
 
-        <div class="panel start-panel">
+        <a class="panel start-panel panel-link" href="/builder">
             <div class="panel-header">
                 <div class="panel-icon alt">
                     <span class="icon-square" aria-hidden="true"></span>
@@ -207,8 +200,8 @@
                 <p>Starten Sie leer und füllen Sie Schritt für Schritt Ihre Offerte aus.</p>
             </div>
 
-            <a class="panel-button primary" href="/builder"> Neue Offerte erstellen </a>
-        </div>
+            <span class="panel-button primary"> Neue Offerte erstellen </span>
+        </a>
     </div>
 </section>
 
@@ -276,6 +269,11 @@
         gap: 0.75rem;
         min-height: 260px;
         transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+    }
+
+    .panel-link {
+        color: inherit;
+        text-decoration: none;
     }
 
     .panel:hover,
@@ -428,6 +426,13 @@
         margin: 0;
         color: #b91c1c;
         font-weight: 700;
+    }
+
+    .dropzone-block {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     @media (max-width: 640px) {
