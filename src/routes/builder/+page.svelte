@@ -134,13 +134,13 @@
     let positions = [
         {
             articleNumber: "01",
-            description: "Art. Nr. 1 Bezeichnung 1",
+            description: "Positionsbeschreibung 1",
             quantity: 1,
             unitPrice: 450,
         },
         {
             articleNumber: "02",
-            description: "Art. Nr. 2 Bezeichnung 2",
+            description: "Positionsbeschreibung 2",
             quantity: 1,
             unitPrice: 180,
         },
@@ -1457,7 +1457,7 @@
     }
 
     .offer-table {
-        width: 100%;
+        width: 90%;
         border-collapse: collapse;
         margin-bottom: 0.75rem;
         table-layout: fixed;
@@ -1476,11 +1476,13 @@
     }
 
     .offer-table .col-pos {
-        width: 8%;
+        width: 4%;
+        text-align: center!important;
     }
 
     .offer-table .col-art {
         width: 12%;
+        text-align: center!important;
     }
 
     .offer-table .col-desc {
@@ -1531,33 +1533,40 @@
     #pdf-preview {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 0.9rem;
         width: 100%;
         max-width: 100%;
         align-items: center;
     }
 
     .pdf-page-wrapper {
+        --page-width: 210mm;
+        --page-height: 296mm;
         width: 100%;
         display: flex;
         justify-content: center;
-        overflow: hidden;
-        padding: 0 0.25rem;
+        align-items: flex-start;
+        overflow: visible;
+        padding: 0;
         box-sizing: border-box;
+        position: relative;
+        height: calc(var(--page-height) * var(--preview-scale, 1));
+        min-height: calc(var(--page-height) * var(--preview-scale, 1));
     }
 
     #pdf-preview.exporting .pdf-page-wrapper {
-        overflow: visible;
+        height: var(--page-height);
+        min-height: var(--page-height);
     }
 
     .pdf-page {
-        width: 210mm;
-        min-height: 296mm;
+        width: var(--page-width);
+        min-height: var(--page-height);
         padding: 20mm 20mm 25mm 20mm;
         background: white;
         border: 1px solid #e5e7eb; /* nur für die Vorschau im Browser */
         box-sizing: border-box;
-        margin: 0 auto;
+        margin: 0;
         font-size: 11px;
         line-height: 1.4;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -1566,8 +1575,15 @@
         flex-direction: column;
         page-break-after: always;
         transform-origin: top center;
-        transform: scale(var(--preview-scale, 1));
+        transform: translateX(-50%) scale(var(--preview-scale, 1));
         transition: transform 0.15s ease;
+        position: absolute;
+        top: 0;
+        left: 50%;
+    }
+
+    #pdf-preview.exporting .pdf-page {
+        transform: translateX(-50%) scale(1);
     }
 
     .pdf-page:last-child {
@@ -1587,12 +1603,16 @@
     .logo-block {
         min-height: 60px;
         max-width: 200px;
+        display: flex;
+        align-items: center;
     }
 
     .logo-block img {
         display: block;
-        height: 60px;
-        max-width: 100%;
+        max-height: 60px;
+        max-width: 200px;
+        width: auto;
+        height: auto;
         object-fit: contain;
     }
 
@@ -1706,7 +1726,8 @@
     }
 
     .offer-table .col-pos {
-        width: 8%;
+        width: 4%;
+        text-align: left;
     }
 
     .offer-table .col-art {
