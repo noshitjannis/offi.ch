@@ -182,7 +182,7 @@
     let contactPhone = "";
 
     // Steuer / Rabatt
-    let vatRate = "";
+    let vatRate = PLACEHOLDERS.vatRate;
     let discountPercent = "";
     let discountLabel = "";
 
@@ -201,6 +201,19 @@
     /**
      * @typedef {"company" | "customer" | "offer" | "contact" | "positions"} AccordionSection
      */
+
+    /**
+     * @returns {Record<AccordionSection, string[]>}
+     */
+    function createErrorState() {
+        return {
+            company: [],
+            customer: [],
+            offer: [],
+            contact: [],
+            positions: [],
+        };
+    }
 
     const accordionSequence =
         /** @type {AccordionSection[]} */ ([
@@ -228,6 +241,8 @@
     /** @type {Record<AccordionSection, boolean>} */
     let accordionState = createAccordionState("company");
     let showDownloads = false;
+    /** @type {Record<AccordionSection, string[]>} */
+    let sectionErrors = createErrorState();
 
     function getSectionElement(/** @type {AccordionSection} */ section) {
         switch (section) {
@@ -257,7 +272,87 @@
         target?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
+    /**
+     * @param {AccordionSection} section
+     */
+    function validateSection(section) {
+        let errors = [];
+
+        if (section === "company") {
+            if (isBlank(companyName)) errors.push("Bitte Firmenname ausfüllen.");
+            if (isBlank(companyAddress)) errors.push("Bitte Adresse ausfüllen.");
+            if (isBlank(companyEmail)) errors.push("Bitte E-Mail ausfüllen.");
+            if (isBlank(companyPhone)) errors.push("Bitte Telefon ausfüllen.");
+            if (isBlank(companyWebsite)) errors.push("Bitte Website ausfüllen.");
+            if (isBlank(companyVatNumber))
+                errors.push("Bitte MWST-Nummer ausfüllen.");
+            if (isBlank(bankName)) errors.push("Bitte Bankname ausfüllen.");
+            if (isBlank(bankLocation)) errors.push("Bitte Bank-Ort ausfüllen.");
+            if (isBlank(bankAccount)) errors.push("Bitte Konto ausfüllen.");
+            if (isBlank(bankIban)) errors.push("Bitte IBAN ausfüllen.");
+            if (isBlank(bankSwift)) errors.push("Bitte SWIFT-Code ausfüllen.");
+        }
+
+        if (section === "customer") {
+            if (isBlank(customerName)) errors.push("Bitte Kundennamen ausfüllen.");
+            if (isBlank(customerStreet)) errors.push("Bitte Strasse ausfüllen.");
+            if (isBlank(customerZipCity)) errors.push("Bitte PLZ / Ort ausfüllen.");
+        }
+
+        if (section === "offer") {
+            if (isBlank(offerNumber)) errors.push("Bitte Offerte-Nr. ausfüllen.");
+            if (isBlank(offerSubject)) errors.push("Bitte Betreff ausfüllen.");
+            if (isBlank(offerDate)) errors.push("Bitte Offertdatum ausfüllen.");
+            if (isBlank(requestDate))
+                errors.push("Bitte Datum der Anfrage ausfüllen.");
+
+            const vat = Number(vatRate);
+            const validity = Number(offerValidityDays);
+            if (isBlank(vatRate) || !Number.isFinite(vat))
+                errors.push("Bitte MWST in % angeben.");
+            if (isBlank(offerValidityDays) || !Number.isFinite(validity) || validity <= 0)
+                errors.push("Bitte Gueltigkeit in Tagen angeben.");
+            if (isBlank(deliveryText)) errors.push("Bitte Lieferfrist ausfüllen.");
+        }
+
+        if (section === "contact") {
+            if (isBlank(contactPerson)) errors.push("Bitte Ansprechpartner ausfüllen.");
+            if (isBlank(contactEmail)) errors.push("Bitte E-Mail ausfüllen.");
+            if (isBlank(contactPhone)) errors.push("Bitte Telefon ausfüllen.");
+        }
+
+        if (section === "positions") {
+            const rowErrors = positions
+                .map((pos, idx) => {
+                    const missing =
+                        isBlank(pos.articleNumber) ||
+                        isBlank(pos.description) ||
+                        isBlank(pos.quantity) ||
+                        isBlank(pos.unitPrice) ||
+                        !Number.isFinite(Number(pos.quantity)) ||
+                        !Number.isFinite(Number(pos.unitPrice));
+                    return missing ? idx + 1 : null;
+                })
+                .filter((n) => n !== null);
+
+            if (!positions.length) {
+                errors.push("Bitte mindestens eine Position erfassen.");
+            } else if (rowErrors.length) {
+                errors.push(
+                    `Bitte alle Positionsfelder ausfüllen (Zeile ${rowErrors.join(", ")}).`,
+                );
+            }
+        }
+
+        sectionErrors = { ...sectionErrors, [section]: errors };
+        return errors.length === 0;
+    }
+
     function goToNext(/** @type {AccordionSection} */ section) {
+        if (!validateSection(section)) {
+            queueSectionScroll(section);
+            return;
+        }
         const currentIndex = accordionSequence.indexOf(section);
         const nextSection = accordionSequence[currentIndex + 1];
         if (nextSection) {
@@ -274,8 +369,13 @@
     }
 
     function finishForm() {
-        accordionState = createAccordionState(null);
-        showDownloads = true;
+        const lastSectionValid = validateSection("positions");
+        if (lastSectionValid) {
+            accordionState = createAccordionState(null);
+            showDownloads = true;
+        } else {
+            queueSectionScroll("positions");
+        }
     }
 
     function reopenPositions() {
@@ -310,6 +410,11 @@
             : `Rabatt ${resolvedDiscountPercent} %`;
 
     const allowedLogoTypes = ["image/png", "image/jpeg"];
+
+    const isBlank = (/** @type {string | number | null | undefined} */ value) =>
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "");
 
     /**
      * @template T
@@ -437,14 +542,14 @@
     );
 
     $: resolvedVatRate = numberOrPlaceholder(vatRate, PLACEHOLDERS.vatRate);
-    $: resolvedDiscountPercent = numberOrPlaceholder(
-        discountPercent,
-        PLACEHOLDERS.discountPercent,
-    );
-    $: resolvedDiscountLabel = textOrPlaceholder(
-        discountLabel,
-        PLACEHOLDERS.discountLabel,
-    );
+    $: resolvedDiscountPercent = (() => {
+        if (isBlank(discountPercent)) return 0;
+        const parsed = Number(discountPercent);
+        return Number.isFinite(parsed) ? parsed : 0;
+    })();
+    $: resolvedDiscountLabel = isBlank(discountLabel)
+        ? ""
+        : (typeof discountLabel === "string" ? discountLabel.trim() : discountLabel);
 
     $: resolvedPositions = positions.map((pos, index) => {
         const placeholder = getPositionPlaceholder(index);
@@ -899,6 +1004,14 @@
                             />
                         </label>
 
+                        {#if sectionErrors.company.length}
+                            <div class="section-error">
+                                {#each sectionErrors.company as error}
+                                    <div>{error}</div>
+                                {/each}
+                            </div>
+                        {/if}
+
                         <div class="accordion-footer">
                             <button
                                 type="button"
@@ -952,6 +1065,14 @@
                                 placeholder={PLACEHOLDERS.customerZipCity}
                             />
                         </label>
+
+                        {#if sectionErrors.customer.length}
+                            <div class="section-error">
+                                {#each sectionErrors.customer as error}
+                                    <div>{error}</div>
+                                {/each}
+                            </div>
+                        {/if}
 
                         <div class="accordion-footer">
                             <button
@@ -1074,6 +1195,14 @@
                             </label>
                         </div>
 
+                        {#if sectionErrors.offer.length}
+                            <div class="section-error">
+                                {#each sectionErrors.offer as error}
+                                    <div>{error}</div>
+                                {/each}
+                            </div>
+                        {/if}
+
                         <div class="accordion-footer">
                             <button
                                 type="button"
@@ -1135,6 +1264,14 @@
                                 placeholder={PLACEHOLDERS.contactPhone}
                             />
                         </label>
+
+                        {#if sectionErrors.contact.length}
+                            <div class="section-error">
+                                {#each sectionErrors.contact as error}
+                                    <div>{error}</div>
+                                {/each}
+                            </div>
+                        {/if}
 
                         <div class="accordion-footer">
                             <button
@@ -1215,6 +1352,14 @@
                         <button type="button" class="small" on:click={addPosition}>
                             + Position hinzufuegen
                         </button>
+
+                        {#if sectionErrors.positions.length}
+                            <div class="section-error">
+                                {#each sectionErrors.positions as error}
+                                    <div>{error}</div>
+                                {/each}
+                            </div>
+                        {/if}
 
                         <div class="accordion-footer">
                             <button
@@ -1387,22 +1532,27 @@
                                     </tbody>
                                 </table>
 
-                                {#if pageIndex === totalPages - 1}
+        {#if pageIndex === totalPages - 1}
                                     <div class="totals">
-                                        <div class="row">
-                                            <span>Zwischensumme</span>
-                                            <span>{formatCurrency(subtotal)}</span>
-                                        </div>
                                         {#if resolvedDiscountPercent > 0}
+                                            <div class="row">
+                                                <span>Zwischensumme</span>
+                                                <span>{formatCurrency(subtotal)}</span>
+                                            </div>
                                             <div class="row">
                                                 <span>{displayDiscountLabel}</span>
                                                 <span>-{formatCurrency(discountAmount)}</span>
                                             </div>
+                                            <div class="row">
+                                                <span>Zwischensumme</span>
+                                                <span>{formatCurrency(subtotalAfterDiscount)}</span>
+                                            </div>
+                                        {:else}
+                                            <div class="row">
+                                                <span>Zwischensumme</span>
+                                                <span>{formatCurrency(subtotalAfterDiscount)}</span>
+                                            </div>
                                         {/if}
-                                        <div class="row">
-                                            <span>Zwischensumme nach Rabatt</span>
-                                            <span>{formatCurrency(subtotalAfterDiscount)}</span>
-                                        </div>
                                         <div class="row">
                                             <span>MWST {resolvedVatRate}%</span>
                                             <span>{formatCurrency(vatAmount)}</span>
@@ -1413,7 +1563,7 @@
                                         </div>
                                     </div>
                                     <div class="closing">
-                                        Freundliche Gruesse<br />
+                                        Freundliche Grüsse<br />
                                         <b>{resolvedContactPerson}</b><br />
                                         <b>{resolvedCompanyName}</b>
                                     </div>
@@ -1709,6 +1859,17 @@
         color: #b45309;
     }
 
+    .section-error {
+        margin-top: 0.6rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 0.45rem;
+        border: 1px solid #fecdd3;
+        background: #fff1f2;
+        color: #b91c1c;
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
     input,
     textarea {
         width: 100%;
@@ -1865,6 +2026,7 @@
     .totals .row {
         display: flex;
         justify-content: space-between;
+        column-gap: 1.25rem;
         margin-bottom: 0.2rem;
     }
 
@@ -2116,6 +2278,7 @@
     .totals .row {
         display: flex;
         justify-content: space-between;
+        column-gap: 1.25rem;
         margin-bottom: 0.2rem;
     }
 
