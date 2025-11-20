@@ -119,7 +119,7 @@
     }
 
     .hero {
-        width: min(980px, 100%);
+        width: 93%;
         margin: 0 auto;
         padding: 1.5rem 1.75rem;
         border-radius: 16px;
@@ -171,6 +171,14 @@
         flex-direction: column;
         gap: 0.75rem;
         min-height: 260px;
+        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+    }
+
+    .panel:hover,
+    .panel:focus-within {
+        transform: translateY(-4px);
+        border-color: #cbd5e1;
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
     }
 
     .panel-header {
