@@ -60,82 +60,90 @@
     </div>
 
     <div class="card">
-        <div class="card-head">
-            <div>
-                <p class="eyebrow small">Profil</p>
-                <h2 class="subhead">Ihre Angaben</h2>
-                <p class="hint">
-                    Ergänzen Sie Ihre Firmendaten, damit Sie diese nicht jedes Mal ausfüllen müssen.
-                </p>
-            </div>
-            <div class="card-actions">
-                <button class="ghost" type="button" on:click={() => (editing = !editing)}>
-                    {editing ? "Abbrechen" : "Bearbeiten"}
-                </button>
-                <form method="POST" action="?/logout" class="logout-inline">
-                    <button type="submit" class="ghost danger">Abmelden</button>
-                </form>
-            </div>
-        </div>
+        <details class="accordion">
+            <summary class="card-head">
+                <div>
+                    <p class="eyebrow small">Profil</p>
+                    <h2 class="subhead">Ihre Angaben</h2>
+                    <p class="hint">
+                        Ergänzen Sie Ihre Firmendaten, damit Sie diese nicht jedes Mal ausfüllen müssen.
+                    </p>
+                </div>
+                <div class="card-actions">
+                    <img src="/arrow.png" alt="" class="accordion-icon" aria-hidden="true" />
+                </div>
+            </summary>
 
-        {#if profile.logoData}
-            <div class="logo-wrap">
-                <img src={profile.logoData} alt="Firmenlogo" />
-            </div>
-        {/if}
+            <div class="accordion-body">
+                <div class="inline-actions">
+                    <button class="ghost" type="button" on:click={() => (editing = !editing)}>
+                        {editing ? "Abbrechen" : "Bearbeiten"}
+                    </button>
+                    <form method="POST" action="?/logout" class="logout-inline">
+                        <button type="submit" class="ghost danger">Abmelden</button>
+                    </form>
+                </div>
 
-        <div class="info-grid">
-            <div class="info-row">
-                <span class="label">E-Mail</span>
-                <span class="value">{data.user.email}</span>
+                {#if profile.logoData}
+                    <div class="logo-wrap">
+                        <img src={profile.logoData} alt="Firmenlogo" />
+                    </div>
+                {/if}
+
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="label">E-Mail</span>
+                        <span class="value">{data.user.email}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Firmenname</span>
+                        <span class="value">{data.user.name ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Adresse</span>
+                        <span class="value">{profile.addressStreet ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">PLZ / Ort</span>
+                        <span class="value">
+                            {(profile.addressZip ?? "—") + " " + (profile.addressCity ?? "")}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Telefon</span>
+                        <span class="value">{profile.phone ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Website</span>
+                        <span class="value">{profile.website ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">MWST</span>
+                        <span class="value">{profile.mwst ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Bank</span>
+                        <span class="value">{profile.bankName ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Bank-Ort</span>
+                        <span class="value">{profile.bankLocation ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Kontonummer</span>
+                        <span class="value">{profile.bankAccount ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">IBAN</span>
+                        <span class="value">{profile.bankIban ?? "—"}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">SWIFT</span>
+                        <span class="value">{profile.bankSwift ?? "—"}</span>
+                    </div>
+                </div>
             </div>
-            <div class="info-row">
-                <span class="label">Firmenname</span>
-                <span class="value">{data.user.name ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Adresse</span>
-                <span class="value">{profile.addressStreet ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">PLZ / Ort</span>
-                <span class="value">
-                    {(profile.addressZip ?? "—") + " " + (profile.addressCity ?? "")}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="label">Telefon</span>
-                <span class="value">{profile.phone ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Website</span>
-                <span class="value">{profile.website ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">MWST</span>
-                <span class="value">{profile.mwst ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Bank</span>
-                <span class="value">{profile.bankName ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Bank-Ort</span>
-                <span class="value">{profile.bankLocation ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Kontonummer</span>
-                <span class="value">{profile.bankAccount ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">IBAN</span>
-                <span class="value">{profile.bankIban ?? "—"}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">SWIFT</span>
-                <span class="value">{profile.bankSwift ?? "—"}</span>
-            </div>
-        </div>
+        </details>
     </div>
 
     {#if data.drafts?.length}
@@ -456,6 +464,51 @@
     .card-actions {
         display: flex;
         gap: 0.5rem;
+    }
+
+    .accordion {
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .accordion summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .accordion summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .accordion-body {
+        margin-top: 0.5rem;
+    }
+
+    .accordion-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 18px;
+        width: auto;
+        transition: transform 150ms ease;
+        margin-left: auto;
+        transform: rotate(0deg);
+    }
+
+    .accordion[open] .accordion-icon {
+        transform: rotate(180deg);
+    }
+
+    .inline-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 0.5rem;
     }
 
     .ghost {
