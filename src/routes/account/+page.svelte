@@ -1,4 +1,5 @@
 <script lang="ts">
+    import HeroBox from "$lib/components/HeroBox.svelte";
     export let data;
     export let form;
 
@@ -56,13 +57,12 @@
 </svelte:head>
 
 <section class="page">
-    <div class="hero">
-        <p class="eyebrow">Account</p>
-        <h1>Willkommen zurück</h1>
-        <p class="lede">
-            Ergänzen Sie Ihre Firmendaten, damit Sie diese nicht jedes Mal ausfüllen müssen.
-        </p>
-    </div>
+    <HeroBox
+        eyebrow="Account"
+        title="Willkommen zurück"
+        description="Ergänzen Sie Ihre Firmendaten, damit Sie diese nicht jedes Mal ausfüllen müssen."
+        flat
+    />
 
     <div class="card">
         <details class="accordion">
@@ -371,14 +371,6 @@
         align-items: center;
     }
 
-    .hero {
-        width: min(960px, 100%);
-        padding: 1.5rem 1.75rem;
-        border-radius: 16px;
-        background: radial-gradient(circle at 20% 20%, #e7f0ff, #f5f7fb 40%);
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
-    }
 
     .eyebrow {
         margin: 0 0 0.35rem;
@@ -387,21 +379,6 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: #1d4ed8;
-    }
-
-    .hero h1 {
-        margin: 0 0 0.4rem;
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #0b1530;
-        letter-spacing: -0.015em;
-    }
-
-    .lede {
-        margin: 0;
-        color: #475569;
-        max-width: 640px;
-        line-height: 1.6;
     }
 
     .card {
@@ -822,8 +799,5 @@
             padding: 2.5rem 1rem;
         }
 
-        .hero {
-            padding: 1.25rem 1.1rem;
-        }
     }
 </style>

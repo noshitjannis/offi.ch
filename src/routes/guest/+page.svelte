@@ -1,5 +1,6 @@
 <script>
     import { goto } from "$app/navigation";
+    import HeroBox from "$lib/components/HeroBox.svelte";
     import OptionCard from "$lib/components/OptionCard.svelte";
 
     const TEMPLATE_STORAGE_KEY = "offertio-template";
@@ -144,16 +145,12 @@
 </svelte:head>
 
 <section class="page">
-    <div class="hero">
-        <div>
-            <p class="eyebrow">Gastmodus</p>
-            <h1>Weiter ohne Login</h1>
-            <p class="lede">
-                Nutzen Sie eine bestehende Vorlage oder beginnen Sie frisch. Beide Wege führen Sie
-                direkt zum Offerten-Builder.
-            </p>
-        </div>
-    </div>
+    <HeroBox
+        eyebrow="Gastmodus"
+        title="Weiter ohne Login"
+        description="Nutzen Sie eine bestehende Vorlage oder beginnen Sie frisch. Beide Wege führen Sie direkt zum Offerten-Builder."
+        flat
+    />
 
     <div class="options">
         <OptionCard
@@ -215,40 +212,6 @@
         gap: 1.5rem;
         padding: 2.5rem 1.5rem 3rem;
         box-sizing: border-box;
-    }
-
-    .hero {
-        width: 93%;
-        margin: 0 auto;
-        padding: 1.5rem 1.75rem;
-        border-radius: 16px;
-        background: radial-gradient(circle at 20% 20%, #e7f0ff, #f5f7fb 40%);
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
-    }
-
-    .eyebrow {
-        margin: 0 0 0.35rem;
-        font-weight: 700;
-        font-size: 0.85rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #1d4ed8;
-    }
-
-    .hero h1 {
-        margin: 0 0 0.5rem;
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #0b1530;
-        letter-spacing: -0.015em;
-    }
-
-    .lede {
-        margin: 0;
-        color: #475569;
-        max-width: 640px;
-        line-height: 1.6;
     }
 
     .options {
@@ -337,8 +300,5 @@
             padding: 2.5rem 1rem;
         }
 
-        .hero {
-            padding: 1.25rem 1.1rem;
-        }
     }
 </style>

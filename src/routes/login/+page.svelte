@@ -1,5 +1,6 @@
 
 <script>
+    import HeroBox from "$lib/components/HeroBox.svelte";
     import OptionCard from "$lib/components/OptionCard.svelte";
 </script>
 
@@ -8,13 +9,11 @@
 </svelte:head>
 
 <section class="page">
-    <div class="intro">
-        <h1>Wie möchten Sie Ihre Offerte erstellen?</h1>
-        <p>
-            Wählen Sie, ob Sie sich anmelden möchten oder ohne Login direkt mit einer neuen Offerte
-            beginnen.
-        </p>
-    </div>
+    <HeroBox
+        title="Wie möchten Sie Ihre Offerte erstellen?"
+        description="Wählen Sie, ob Sie sich anmelden möchten oder ohne Login direkt mit einer neuen Offerte beginnen."
+        flat
+    />
 
     <div class="cards">
         <OptionCard
@@ -54,25 +53,6 @@
         gap: 1.75rem;
         padding: 3rem 1.5rem;
         box-sizing: border-box;
-    }
-
-    .intro {
-        text-align: center;
-        max-width: 640px;
-    }
-
-    .intro h1 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.65rem;
-        font-weight: 700;
-        color: #0b1530;
-        letter-spacing: -0.01em;
-    }
-
-    .intro p {
-        margin: 0;
-        color: #475569;
-        line-height: 1.6;
     }
 
     .cards {
