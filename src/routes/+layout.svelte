@@ -18,8 +18,6 @@
 
       <div class="header-actions">
         <nav>
-          <a href="/">Start</a>
-          <a href="/builder">Builder</a>
           <a href="/account">Account</a>
         </nav>
 

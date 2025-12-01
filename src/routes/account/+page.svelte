@@ -4,6 +4,46 @@
 
     const profile = form?.company ?? data.profile ?? {};
     let editing = false;
+    let logoDrag = false;
+    let logoPreview: string | null = profile.logoData ?? null;
+    let logoInput: HTMLInputElement | null = null;
+
+    const setFilesOnInput = (file: File) => {
+        if (!logoInput) return;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        logoInput.files = dt.files;
+    };
+
+    const handleLogoFile = async (file?: File | null) => {
+        if (!file) return;
+        setFilesOnInput(file);
+        const reader = new FileReader();
+        reader.onload = () => {
+            logoPreview = reader.result as string;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleLogoDrop = async (event: DragEvent) => {
+        logoDrag = false;
+        const file = event.dataTransfer?.files?.[0];
+        await handleLogoFile(file);
+    };
+
+    const handleLogoDragEnter = () => (logoDrag = true);
+    const handleLogoDragLeave = () => (logoDrag = false);
+    const handleLogoDragOver = () => (logoDrag = true);
+
+    const triggerLogoBrowse = () => {
+        logoInput?.click();
+    };
+
+    const handleLogoSelect = async (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const file = target.files?.[0];
+        await handleLogoFile(file);
+    };
 </script>
 
 <svelte:head>
@@ -38,6 +78,12 @@
             </div>
         </div>
 
+        {#if profile.logoData}
+            <div class="logo-wrap">
+                <img src={profile.logoData} alt="Firmenlogo" />
+            </div>
+        {/if}
+
         <div class="info-grid">
             <div class="info-row">
                 <span class="label">E-Mail</span>
@@ -63,7 +109,13 @@
             </div>
             <div class="info-row">
                 <span class="label">Website</span>
-                <span class="value">{profile.website ?? "—"}</span>
+                {#if profile.website}
+                    <a class="value link" href={profile.website} target="_blank" rel="noreferrer"
+                        >{profile.website}</a
+                    >
+                {:else}
+                    <span class="value">—</span>
+                {/if}
             </div>
             <div class="info-row">
                 <span class="label">MWST</span>
@@ -103,7 +155,46 @@
                 </div>
             </div>
 
-            <form class="stack" method="POST" action="?/save">
+            <form class="stack" method="POST" action="?/save" enctype="multipart/form-data">
+                <div
+                    class="logo-dropzone"
+                    class:dragging={logoDrag}
+                    role="button"
+                    tabindex="0"
+                    aria-label="Firmenlogo hochladen"
+                    on:click={triggerLogoBrowse}
+                    on:keydown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            triggerLogoBrowse();
+                        }
+                    }}
+                    on:dragenter|preventDefault={handleLogoDragEnter}
+                    on:dragover|preventDefault={handleLogoDragOver}
+                    on:dragleave={handleLogoDragLeave}
+                    on:drop|preventDefault={handleLogoDrop}
+                >
+                    {#if logoPreview}
+                        <img class="logo-dropzone-preview" src={logoPreview} alt="Firmenlogo" />
+                        <p class="logo-dropzone-text">
+                            Logo ersetzen? Klicken oder neue Datei ablegen.
+                        </p>
+                    {:else}
+                        <div class="logo-dropzone-icon" aria-hidden="true">🗂️</div>
+                        <p class="logo-dropzone-text">
+                            Logo hierhin ziehen oder klicken, um PNG/JPG hochzuladen
+                        </p>
+                        <p class="logo-dropzone-subtext">Empfohlen: 160 × 60 px</p>
+                    {/if}
+                </div>
+                <input
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    class="logo-file-input"
+                    bind:this={logoInput}
+                    on:change={handleLogoSelect}
+                />
+
                 <label>
                     Adresse (Strasse)
                     <input
@@ -127,7 +218,7 @@
                 </label>
                 <label>
                     Website
-                    <input name="website" type="url" placeholder="https://offi.ch" value={profile.website ?? ""} />
+                    <input name="website" type="text" placeholder="offi.ch" value={profile.website ?? ""} />
                 </label>
                 <label>
                     MWST-Nummer
@@ -233,6 +324,70 @@
         gap: 0.5rem;
     }
 
+    .logo-dropzone {
+        border: 2px dashed #c7d1e0;
+        border-radius: 0.8rem;
+        padding: 1.4rem;
+        text-align: center;
+        background: #f8fbff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        margin-bottom: 0.9rem;
+        outline: none;
+    }
+
+    .logo-dropzone.dragging {
+        border-color: #84c1ff;
+        background: #eef5ff;
+        box-shadow: 0 12px 28px rgba(1, 51, 100, 0.12);
+    }
+
+    .logo-dropzone:focus-visible {
+        box-shadow: 0 0 0 3px rgba(132, 193, 255, 0.6);
+        border-color: #84c1ff;
+    }
+
+    .logo-dropzone-icon {
+        font-size: 2.4rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .logo-dropzone-text {
+        margin: 0.25rem 0;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #0b2a57;
+    }
+
+    .logo-dropzone-subtext {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    .logo-dropzone-preview {
+        display: block;
+        max-width: 240px;
+        max-height: 110px;
+        margin: 0 auto 0.75rem;
+        object-fit: contain;
+    }
+
+    .logo-file-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
     .card-head {
         display: flex;
         align-items: flex-start;
@@ -278,6 +433,23 @@
         gap: 0.75rem;
     }
 
+    .logo-wrap {
+        width: 120px;
+        height: 120px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        display: grid;
+        place-items: center;
+    }
+
+    .logo-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
     .info-row {
         padding: 0.85rem;
         border: 1px solid #e2e8f0;
@@ -294,6 +466,16 @@
         font-weight: 700;
         color: #0f172a;
         word-break: break-word;
+    }
+
+    .value.link {
+        color: #0c3266;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .value.link:hover {
+        text-decoration: underline;
     }
 
     .form-head {

@@ -31,12 +31,36 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
+		const rawWebsite = (formData.get("website") || "").toString().trim();
+		const website =
+			rawWebsite && !/^https?:\/\//i.test(rawWebsite) ? `https://${rawWebsite}` : rawWebsite;
+
+		const db = await getDb();
+		const existing = await db.collection("users").findOne({
+			_id: locals.user.id
+		} as Record<string, unknown>);
+
+		let logoData = (existing as any)?.company?.logoData || "";
+		const logoFile = formData.get("logo");
+		if (logoFile && typeof logoFile === "object" && "arrayBuffer" in logoFile) {
+			const arrayBuffer = await logoFile.arrayBuffer();
+			if (arrayBuffer.byteLength > 0) {
+				const contentType =
+					(logoFile as File).type && (logoFile as File).type.length > 0
+						? (logoFile as File).type
+						: "image/png";
+				const base64 = Buffer.from(arrayBuffer).toString("base64");
+				logoData = `data:${contentType};base64,${base64}`;
+			}
+		}
+
 		const company = {
 			addressStreet: (formData.get("addressStreet") || "").toString().trim(),
 			addressZip: (formData.get("addressZip") || "").toString().trim(),
 			addressCity: (formData.get("addressCity") || "").toString().trim(),
 			phone: (formData.get("phone") || "").toString().trim(),
-			website: (formData.get("website") || "").toString().trim(),
+			website,
+			logoData,
 			mwst: (formData.get("mwst") || "").toString().trim(),
 			bankName: (formData.get("bankName") || "").toString().trim(),
 			bankLocation: (formData.get("bankLocation") || "").toString().trim(),
@@ -45,7 +69,6 @@ export const actions: Actions = {
 			bankSwift: (formData.get("bankSwift") || "").toString().trim()
 		};
 
-		const db = await getDb();
 		await db
 			.collection("users")
 			.updateOne({ _id: locals.user.id } as Record<string, unknown>, { $set: { company } });
