@@ -31,9 +31,7 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const rawWebsite = (formData.get("website") || "").toString().trim();
-		const website =
-			rawWebsite && !/^https?:\/\//i.test(rawWebsite) ? `https://${rawWebsite}` : rawWebsite;
+		const website = (formData.get("website") || "").toString().trim();
 
 		const db = await getDb();
 		const existing = await db.collection("users").findOne({

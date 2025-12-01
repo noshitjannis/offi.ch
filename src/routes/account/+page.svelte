@@ -109,13 +109,7 @@
             </div>
             <div class="info-row">
                 <span class="label">Website</span>
-                {#if profile.website}
-                    <a class="value link" href={profile.website} target="_blank" rel="noreferrer"
-                        >{profile.website}</a
-                    >
-                {:else}
-                    <span class="value">—</span>
-                {/if}
+                <span class="value">{profile.website ?? "—"}</span>
             </div>
             <div class="info-row">
                 <span class="label">MWST</span>
@@ -190,6 +184,7 @@
                 <input
                     type="file"
                     accept="image/png,image/jpeg"
+                    name="logo"
                     class="logo-file-input"
                     bind:this={logoInput}
                     on:change={handleLogoSelect}
@@ -468,15 +463,6 @@
         word-break: break-word;
     }
 
-    .value.link {
-        color: #0c3266;
-        text-decoration: none;
-        font-weight: 700;
-    }
-
-    .value.link:hover {
-        text-decoration: underline;
-    }
 
     .form-head {
         display: flex;
