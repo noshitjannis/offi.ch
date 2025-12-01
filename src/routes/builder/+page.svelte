@@ -782,7 +782,8 @@
 
         if (Array.isArray(template.positions)) {
             const mapped = template.positions.map(
-                (pos /** @type {{articleNumber?: string | number; description?: string; quantity?: string | number; unitPrice?: string | number;}} */) => ({
+                /** @param {{articleNumber?: string | number; description?: string; quantity?: string | number; unitPrice?: string | number;}} pos */
+                (pos) => ({
                     articleNumber: pos?.articleNumber ?? "",
                     description: pos?.description ?? "",
                     quantity: Number(pos?.quantity ?? 0) || 0,

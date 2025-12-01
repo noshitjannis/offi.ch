@@ -1,4 +1,9 @@
 
+<script lang="ts">
+  export let data;
+  const ctaHref = data.user ? "/builder" : "/login";
+</script>
+
 <svelte:head>
   <title>Offi</title>
 </svelte:head>
@@ -15,9 +20,10 @@
         <nav>
           <a href="/">Start</a>
           <a href="/builder">Builder</a>
+          <a href="/account">Account</a>
         </nav>
 
-        <a class="nav-cta" href="/login">Offerte erstellen</a>
+        <a class="nav-cta" href={ctaHref}>Offerte erstellen</a>
       </div>
     </div>
   </header>

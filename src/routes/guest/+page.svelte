@@ -40,6 +40,7 @@
     /** @type {HTMLInputElement | null} */
     let fileInput = null;
 
+    /** @param {Record<string, any>} object @param {string} path @returns {any} */
     function getValueAtPath(object, path) {
         return path.split(".").reduce((current, key) => {
             if (current && typeof current === "object" && key in current) {
@@ -49,6 +50,7 @@
         }, object);
     }
 
+    /** @param {any} data */
     function isValidTemplate(data) {
         if (!data || typeof data !== "object") return false;
 
@@ -62,6 +64,7 @@
         if (!Array.isArray(data.positions) || !data.positions.length) return false;
 
         return data.positions.every(
+            /** @param {{ description?: unknown; articleNumber?: unknown; quantity?: unknown; unitPrice?: unknown }} pos */
             (pos) =>
                 pos &&
                 typeof pos.description === "string" &&
@@ -71,6 +74,7 @@
         );
     }
 
+    /** @param {File} file */
     async function processTemplateFile(file) {
         uploadError = "";
         isProcessing = true;
@@ -94,6 +98,7 @@
         }
     }
 
+    /** @param {FileList | null | undefined} files */
     async function handleFiles(files) {
         const file = files?.[0];
         fileName = file ? file.name : "";
@@ -102,6 +107,7 @@
         }
     }
 
+    /** @param {DragEvent} event */
     async function handleDrop(event) {
         isDragging = false;
         await handleFiles(event.dataTransfer?.files);
@@ -119,10 +125,12 @@
         fileInput?.click();
     }
 
+    /** @param {Event & { currentTarget: HTMLInputElement }} event */
     async function handleFileSelect(event) {
         await handleFiles(event.currentTarget.files);
     }
 
+    /** @param {KeyboardEvent} event */
     function handleKeyActivate(event) {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
@@ -151,6 +159,8 @@
         <OptionCard
             title="Aus Vorlage starten"
             description="Laden Sie eine JSON-Datei einer ausgefüllten Offerte hoch."
+            href={null}
+            buttonText={null}
         >
             <div class="dropzone-block" slot="content">
                 <div
@@ -200,7 +210,6 @@
 
 <style>
     .page {
-        min-height: 100vh;
         display: flex;
         flex-direction: column;
         gap: 1.5rem;

@@ -20,7 +20,7 @@
         <OptionCard
             title="Mit Login Offerte erstellen"
             description="Melden Sie sich an, speichern Sie Ihre Daten und greifen Sie später erneut auf Ihre Offerten zu."
-            href=""
+            href="/login/basic"
             buttonText="Mit Login starten"
         />
 
@@ -47,7 +47,6 @@
     }
 
     .page {
-        min-height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
