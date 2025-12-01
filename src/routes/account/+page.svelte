@@ -7,7 +7,7 @@
     let logoDrag = false;
     let logoPreview: string | null = profile.logoData ?? null;
     let logoInput: HTMLInputElement | null = null;
-    let confirmDraftId: string | null = null;
+    let confirmItem: { id: string; type: "draft" | "offer" } | null = null;
 
     const setFilesOnInput = (file: File) => {
         if (!logoInput) return;
@@ -40,8 +40,8 @@
         logoInput?.click();
     };
 
-    function confirmDelete(id: string) {
-        confirmDraftId = id;
+    function confirmDelete(id: string, type: "draft" | "offer") {
+        confirmItem = { id, type };
     }
 
     const handleLogoSelect = async (event: Event) => {
@@ -170,7 +170,7 @@
                                     : ""}
                             </div>
                         </a>
-                        <button class="delete-btn" type="button" on:click={() => confirmDelete(draft.id)}>
+                        <button class="delete-btn" type="button" on:click={() => confirmDelete(draft.id, "draft")}>
                             Löschen
                         </button>
                     </div>
@@ -179,19 +179,62 @@
         </div>
     {/if}
 
-    {#if confirmDraftId}
+    {#if confirmItem}
         <div class="modal-backdrop">
             <div class="modal">
                 <p>Diese Aktion kann nicht rückgängig gemacht werden. Gelöscht ist gelöscht. Weiterfahren?</p>
                 <div class="modal-actions">
-                    <button type="button" class="ghost" on:click={() => (confirmDraftId = null)}>
+                    <button type="button" class="ghost" on:click={() => (confirmItem = null)}>
                         Abbrechen
                     </button>
-                    <form method="POST" action="?/deleteDraft">
-                        <input type="hidden" name="draftId" value={confirmDraftId} />
-                        <button type="submit" class="danger-btn">Definitiv löschen</button>
-                    </form>
+                    {#if confirmItem.type === "draft"}
+                        <form method="POST" action="?/deleteDraft">
+                            <input type="hidden" name="draftId" value={confirmItem.id} />
+                            <button type="submit" class="danger-btn">Definitiv löschen</button>
+                        </form>
+                    {:else}
+                        <form method="POST" action="?/deleteOffer">
+                            <input type="hidden" name="offerId" value={confirmItem.id} />
+                            <button type="submit" class="danger-btn">Definitiv löschen</button>
+                        </form>
+                    {/if}
                 </div>
+            </div>
+        </div>
+    {/if}
+
+    {#if data.offers?.length}
+        <div class="card drafts-card">
+            <div class="card-head">
+                <div>
+                    <p class="eyebrow small">Abgeschlossene Offerten</p>
+                    <h2 class="subhead">Fertige Dokumente</h2>
+                </div>
+            </div>
+            <div class="draft-list">
+                {#each data.offers as offer}
+                    <div class="draft-row">
+                        <div class="draft-link">
+                            <div class="draft-name">{offer.name ?? "Offerte"}</div>
+                            <div class="draft-date">
+                                {offer.createdAt
+                                    ? new Date(offer.createdAt).toLocaleDateString("de-CH")
+                                    : ""}
+                            </div>
+                        </div>
+                        <div class="draft-meta">
+                            <span class="label">Offerte-Nr.</span>
+                            <span class="value">{offer.offerNumber ?? "—"}</span>
+                        </div>
+                        <div class="draft-actions">
+                            <a class="ghost" href={`/builder?draft=${offer.id}`}>Bearbeiten</a>
+                            <a class="ghost" href={`/builder?draft=${offer.id}`}>Anschauen</a>
+                            <button class="delete-btn" type="button" on:click={() => confirmDelete(offer.id, "offer")}>
+                                Löschen
+                            </button>
+                        </div>
+                    </div>
+                {/each}
             </div>
         </div>
     {/if}
@@ -440,6 +483,12 @@
     .delete-btn:hover {
         transform: translateY(-1px);
         box-shadow: 0 8px 18px rgba(190, 18, 60, 0.18);
+    }
+
+    .draft-actions {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
     }
 
     .modal-backdrop {

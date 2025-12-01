@@ -21,6 +21,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.sort({ updatedAt: -1 });
 	const drafts = await draftsCursor.toArray();
 
+	const offersCursor = db
+		.collection("offers")
+		.find({ userId: locals.user.id } as Record<string, unknown>)
+		.project({ _id: 1, name: 1, offerNumber: 1, createdAt: 1 })
+		.sort({ createdAt: -1 });
+	const offers = await offersCursor.toArray();
+
 	return {
 		user: {
 			id: locals.user.id,
@@ -32,11 +39,36 @@ export const load: PageServerLoad = async ({ locals }) => {
 			id: d._id,
 			name: d.name,
 			updatedAt: d.updatedAt
+		})),
+		offers: offers.map((o) => ({
+			id: o._id,
+			name: o.name,
+			offerNumber: o.offerNumber,
+			createdAt: o.createdAt
 		}))
 	};
 };
 
 export const actions: Actions = {
+	deleteOffer: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(302, "/login/basic");
+		}
+
+		const formData = await request.formData();
+		const offerId = formData.get("offerId");
+		if (!offerId || typeof offerId !== "string") {
+			throw redirect(302, "/account");
+		}
+
+		const db = await getDb();
+		await db.collection("offers").deleteOne({
+			_id: offerId,
+			userId: locals.user.id
+		} as Record<string, unknown>);
+
+		throw redirect(302, "/account");
+	},
 	deleteDraft: async ({ request, locals }) => {
 		if (!locals.user) {
 			throw redirect(302, "/login/basic");

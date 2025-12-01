@@ -385,14 +385,15 @@
         }
     }
 
-    function finishForm() {
+    async function finishForm() {
         const lastSectionValid = validateSection("positions");
-        if (lastSectionValid) {
-            accordionState = createAccordionState(null);
-            showDownloads = true;
-        } else {
+        if (!lastSectionValid) {
             queueSectionScroll("positions");
+            return;
         }
+        accordionState = createAccordionState(null);
+        showDownloads = true;
+        await saveCompleted();
     }
 
     function reopenPositions() {
@@ -713,7 +714,27 @@
         }
     }
 
-    function downloadJson() {
+    async function saveCompleted() {
+        if (!data?.user) {
+            return;
+        }
+        try {
+            await fetch("/builder/save-completed", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: resolvedCompanyName,
+                    offerNumber: resolvedOfferNumber,
+                    data: buildDraftPayload()
+                })
+            });
+        } catch (error) {
+            console.error("Speichern der abgeschlossenen Offerte fehlgeschlagen", error);
+        }
+    }
+
+    async function downloadJson() {
+        await saveCompleted();
         const offer = {
             company: {
                 name: resolvedCompanyName,
@@ -778,6 +799,7 @@
     async function downloadPdf() {
         if (typeof window === "undefined" || !html2pdf) return;
 
+        await saveCompleted();
         isExporting = true;
         await tick(); // wait for exporting styles (scale 1, no transform jitter)
         await new Promise((resolve) => requestAnimationFrame(resolve));
