@@ -138,6 +138,29 @@
         </div>
     </div>
 
+    {#if data.drafts?.length}
+        <div class="card drafts-card">
+            <div class="card-head">
+                <div>
+                    <p class="eyebrow small">Entwürfe</p>
+                    <h2 class="subhead">Gespeicherte Offerten</h2>
+                </div>
+            </div>
+            <div class="draft-list">
+                {#each data.drafts as draft}
+                    <a class="draft-row" href={`/builder?draft=${draft.id}`}>
+                        <div class="draft-name">{draft.name ?? "Entwurf"}</div>
+                        <div class="draft-date">
+                            {draft.updatedAt
+                                ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
+                                : ""}
+                        </div>
+                    </a>
+                {/each}
+            </div>
+        </div>
+    {/if}
+
     {#if editing}
         <div class="card form-card">
             <div class="form-head">
@@ -317,6 +340,46 @@
     .form-card {
         width: min(640px, 100%);
         gap: 0.5rem;
+    }
+
+    .drafts-card {
+        width: min(800px, 100%);
+        gap: 0.5rem;
+    }
+
+    .draft-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .draft-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #f8fafc;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    }
+
+    .draft-row:hover {
+        transform: translateY(-1px);
+        border-color: #cbd5e1;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .draft-name {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .draft-date {
+        color: #475569;
+        font-size: 0.95rem;
     }
 
     .logo-dropzone {

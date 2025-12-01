@@ -14,13 +14,25 @@ export const load: PageServerLoad = async ({ locals }) => {
 		_id: locals.user.id
 	} as Record<string, unknown>);
 
+	const draftsCursor = db
+		.collection("drafts")
+		.find({ userId: locals.user.id } as Record<string, unknown>)
+		.project({ _id: 1, name: 1, updatedAt: 1 })
+		.sort({ updatedAt: -1 });
+	const drafts = await draftsCursor.toArray();
+
 	return {
 		user: {
 			id: locals.user.id,
 			email: locals.user.email,
 			name: locals.user.name
 		},
-		profile: record?.company ?? {}
+		profile: record?.company ?? {},
+		drafts: drafts.map((d) => ({
+			id: d._id,
+			name: d.name,
+			updatedAt: d.updatedAt
+		}))
 	};
 };
 

@@ -162,6 +162,12 @@
     let logoFileInput = null;
 
     let initializedFromProfile = false;
+    let savingDraft = false;
+    let saveMessage = "";
+    let showSaveBlocker = false;
+    let draftId = data?.draft?.id ?? null;
+    let draftName = data?.draft?.name ?? "";
+    let appliedDraft = false;
 
     // Bankverbindung
     let bankName = "";
@@ -626,6 +632,87 @@
         }
     }
 
+    function buildDraftPayload() {
+        return {
+            company: {
+                name: companyName,
+                street: companyStreet,
+                zip: companyZip,
+                city: companyCity,
+                email: companyEmail,
+                phone: companyPhone,
+                website: companyWebsite,
+                vatNumber: companyVatNumber,
+                logo: companyLogo,
+                bank: {
+                    name: bankName,
+                    location: bankLocation,
+                    account: bankAccount,
+                    iban: bankIban,
+                    swift: bankSwift,
+                },
+            },
+            customer: {
+                name: customerName,
+                street: customerStreet,
+                zipCity: customerZipCity,
+            },
+            offerMeta: {
+                number: offerNumber,
+                subject: offerSubject,
+                offerDate,
+                requestDate,
+                validityDays: offerValidityDays,
+                delivery: deliveryText,
+                contact: {
+                    person: contactPerson,
+                    email: contactEmail,
+                    phone: contactPhone,
+                },
+            },
+            tax: {
+                vatRate,
+                discountPercent,
+                discountLabel,
+            },
+            positions,
+        };
+    }
+
+    async function saveDraft() {
+        if (!data?.user) {
+            showSaveBlocker = true;
+            return;
+        }
+        savingDraft = true;
+        saveMessage = "";
+        try {
+            const payload = {
+                name: draftName || `Entwurf ${new Date().toLocaleString("de-CH")}`,
+                data: buildDraftPayload(),
+                id: draftId ?? undefined,
+            };
+            const res = await fetch("/builder/save-draft", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+                throw new Error("Speichern fehlgeschlagen");
+            }
+            const result = await res.json();
+            draftId = result.id ?? draftId;
+            draftName = result.name ?? payload.name;
+            saveMessage = "Entwurf gespeichert.";
+        } catch (error) {
+            console.error(error);
+            saveMessage = "Speichern fehlgeschlagen.";
+        } finally {
+            savingDraft = false;
+            setTimeout(() => (saveMessage = ""), 3000);
+        }
+    }
+
     function downloadJson() {
         const offer = {
             company: {
@@ -727,18 +814,25 @@
 
         const company = template.company || {};
         companyName = company.name ?? companyName;
-        const addressString = company.address ?? "";
-        if (addressString) {
-            const lines = addressString
-                .split(/\r?\n/)
-                .map((/** @type {string} */ line) => line.trim())
-                .filter(Boolean);
-            if (lines[0]) companyStreet = lines[0];
-            if (lines[1]) {
-                const [zip, ...cityParts] = lines[1].split(" ");
-                if (zip) companyZip = zip;
-                const city = cityParts.join(" ").trim();
-                if (city) companyCity = city;
+
+        if (company.street || company.zip || company.city) {
+            companyStreet = company.street ?? companyStreet;
+            companyZip = company.zip ?? companyZip;
+            companyCity = company.city ?? companyCity;
+        } else {
+            const addressString = company.address ?? "";
+            if (addressString) {
+                const lines = addressString
+                    .split(/\r?\n/)
+                    .map((/** @type {string} */ line) => line.trim())
+                    .filter(Boolean);
+                if (lines[0]) companyStreet = lines[0];
+                if (lines[1]) {
+                    const [zip, ...cityParts] = lines[1].split(" ");
+                    if (zip) companyZip = zip;
+                    const city = cityParts.join(" ").trim();
+                    if (city) companyCity = city;
+                }
             }
         }
         companyEmail = company.email ?? companyEmail;
@@ -826,6 +920,90 @@
 
     $: positionChunks = chunkPositions(resolvedPositions);
     $: totalPages = positionChunks.length || 1;
+
+    $: if (!initializedFromProfile && data?.profile) {
+        companyStreet = data.profile.addressStreet ?? companyStreet;
+        companyZip = data.profile.addressZip ?? companyZip;
+        companyCity = data.profile.addressCity ?? companyCity;
+        companyPhone = data.profile.phone ?? companyPhone;
+        companyWebsite = data.profile.website ?? companyWebsite;
+        companyVatNumber = data.profile.mwst ?? companyVatNumber;
+        bankName = data.profile.bankName ?? bankName;
+        bankLocation = data.profile.bankLocation ?? bankLocation;
+        bankAccount = data.profile.bankAccount ?? bankAccount;
+        bankIban = data.profile.bankIban ?? bankIban;
+        bankSwift = data.profile.bankSwift ?? bankSwift;
+        companyLogo = data.profile.logoData ?? companyLogo;
+        if (data.user?.name) companyName = companyName || data.user.name;
+        if (data.user?.email) companyEmail = companyEmail || data.user.email;
+        initializedFromProfile = true;
+    }
+
+    $: if (data?.draft?.data && initializedFromProfile && !appliedDraft) {
+        const template = data.draft.data;
+        const company = template.company || {};
+        companyName = company.name ?? companyName;
+        companyStreet = company.street ?? companyStreet;
+        companyZip = company.zip ?? companyZip;
+        companyCity = company.city ?? companyCity;
+        companyEmail = company.email ?? companyEmail;
+        companyPhone = company.phone ?? companyPhone;
+        companyWebsite = company.website ?? companyWebsite;
+        companyVatNumber = company.vatNumber ?? companyVatNumber;
+        companyLogo = company.logo ?? companyLogo;
+
+        const bank = company.bank || {};
+        bankName = bank.name ?? bankName;
+        bankLocation = bank.location ?? bankLocation;
+        bankAccount = bank.account ?? bankAccount;
+        bankIban = bank.iban ?? bankIban;
+        bankSwift = bank.swift ?? bankSwift;
+
+        const customer = template.customer || {};
+        customerName = customer.name ?? customerName;
+        customerStreet = customer.street ?? customerStreet;
+        customerZipCity = customer.zipCity ?? customerZipCity;
+
+        const offerMetaData = template.offerMeta || {};
+        offerNumber = offerMetaData.number ?? offerNumber;
+        offerSubject = offerMetaData.subject ?? offerSubject;
+        offerDate = offerMetaData.offerDate ?? offerDate;
+        requestDate = offerMetaData.requestDate ?? requestDate;
+
+        const parsedValidity = Number(offerMetaData.validityDays);
+        offerValidityDays = Number.isFinite(parsedValidity)
+            ? parsedValidity
+            : offerValidityDays;
+
+        deliveryText = offerMetaData.delivery ?? deliveryText;
+
+        const contact = offerMetaData.contact || {};
+        contactPerson = contact.person ?? contactPerson;
+        contactEmail = contact.email ?? contactEmail;
+        contactPhone = contact.phone ?? contactPhone;
+
+        const tax = template.tax || {};
+        const parsedVat = Number(tax.vatRate);
+        vatRate = Number.isFinite(parsedVat) ? parsedVat : vatRate;
+        const parsedDiscount = Number(tax.discountPercent);
+        discountPercent = Number.isFinite(parsedDiscount)
+            ? parsedDiscount
+            : discountPercent;
+        discountLabel = tax.discountLabel ?? discountLabel;
+
+        if (Array.isArray(template.positions) && template.positions.length) {
+            positions = template.positions.map(
+                /** @param {{articleNumber?: string; description?: string; quantity?: number | string; unitPrice?: number | string}} pos */
+                (pos) => ({
+                    articleNumber: pos.articleNumber ?? "",
+                    description: pos.description ?? "",
+                    quantity: Number(pos.quantity ?? 0) || 0,
+                    unitPrice: Number(pos.unitPrice ?? 0) || 0,
+                }),
+            );
+        }
+        appliedDraft = true;
+    }
 
     $: if (!initializedFromProfile && data?.profile) {
         companyStreet = data.profile.addressStreet ?? companyStreet;
@@ -1468,7 +1646,23 @@
     </div>
 
     <div class="builder-right">
-        <h2>Vorschau</h2>
+        <div class="preview-header">
+            <h2>Vorschau</h2>
+            <div class="preview-actions">
+                <button class="save-btn" type="button" on:click={saveDraft} disabled={savingDraft}>
+                    {savingDraft ? "Speichert..." : "Offerte speichern"}
+                </button>
+                {#if saveMessage}
+                    <span class="save-message">{saveMessage}</span>
+                {/if}
+                {#if showSaveBlocker}
+                    <span class="save-blocker">
+                        Du kannst Offerten nur zwischenspeichern, wenn du einen Account hast.
+                        <a href="/login/register">Jetzt registrieren</a>
+                    </span>
+                {/if}
+            </div>
+        </div>
         <div
             id="pdf-preview"
             class:exporting={isExporting}
@@ -1830,6 +2024,64 @@
         width: auto;
         position: relative;
         z-index: 1;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .save-btn {
+        border: none;
+        background: linear-gradient(135deg, #0c3266, #2563eb);
+        color: #fff;
+        font-weight: 700;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+    }
+
+    .save-btn:hover:enabled {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    .save-btn:disabled {
+        opacity: 0.7;
+        cursor: progress;
+    }
+
+    .save-message {
+        color: #166534;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .save-blocker {
+        background: #fff1f2;
+        color: #be123c;
+        padding: 0.35rem 0.55rem;
+        border-radius: 8px;
+        border: 1px solid #fecdd3;
+        font-size: 0.9rem;
+    }
+
+    .save-blocker a {
+        color: #0c3266;
+        font-weight: 700;
+        margin-left: 0.35rem;
     }
 
 
