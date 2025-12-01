@@ -1,4 +1,5 @@
 <script>
+    export let data;
     // WICHTIG: html2pdf nur im Browser laden
     import { onMount, tick } from "svelte";
 
@@ -99,7 +100,9 @@
 
     const PLACEHOLDERS = {
         companyName: "Offi.ch",
-        companyAddress: "Offertenstrasse 1\n8000 Offer",
+        companyStreet: "Offertenstrasse 1",
+        companyZip: "8000",
+        companyCity: "Offer",
         companyEmail: "info@offi.ch",
         companyPhone: "+41 44 123 45 67",
         companyWebsite: "www.offi.ch",
@@ -143,7 +146,9 @@
 
     // Firmendaten
     let companyName = "";
-    let companyAddress = "";
+    let companyStreet = "";
+    let companyZip = "";
+    let companyCity = "";
     let companyEmail = "";
     let companyPhone = "";
     let companyWebsite = "";
@@ -155,6 +160,8 @@
     let isLogoDragActive = false;
     /** @type {HTMLInputElement | null} */
     let logoFileInput = null;
+
+    let initializedFromProfile = false;
 
     // Bankverbindung
     let bankName = "";
@@ -283,7 +290,8 @@
 
         if (section === "company") {
             if (isBlank(companyName)) errors.push("Bitte Firmenname ausfüllen.");
-            if (isBlank(companyAddress)) errors.push("Bitte Adresse ausfüllen.");
+            if (isBlank(companyStreet) || isBlank(companyZip) || isBlank(companyCity))
+                errors.push("Bitte Adresse ausfüllen.");
             if (isBlank(companyEmail)) errors.push("Bitte E-Mail ausfüllen.");
             if (isBlank(companyPhone)) errors.push("Bitte Telefon ausfüllen.");
             if (isBlank(companyWebsite)) errors.push("Bitte Website ausfüllen.");
@@ -459,30 +467,17 @@
         );
     }
 
-    $: resolvedCompanyName = textOrPlaceholder(
-        companyName,
-        PLACEHOLDERS.companyName,
-    );
-    $: resolvedCompanyAddress = textOrPlaceholder(
-        companyAddress,
-        PLACEHOLDERS.companyAddress,
-    );
-    $: resolvedCompanyEmail = textOrPlaceholder(
-        companyEmail,
-        PLACEHOLDERS.companyEmail,
-    );
-    $: resolvedCompanyPhone = textOrPlaceholder(
-        companyPhone,
-        PLACEHOLDERS.companyPhone,
-    );
-    $: resolvedCompanyWebsite = textOrPlaceholder(
-        companyWebsite,
-        PLACEHOLDERS.companyWebsite,
-    );
-    $: resolvedCompanyVatNumber = textOrPlaceholder(
-        companyVatNumber,
-        PLACEHOLDERS.companyVatNumber,
-    );
+    $: resolvedCompanyName = textOrPlaceholder(companyName, PLACEHOLDERS.companyName);
+    $: resolvedCompanyStreet = textOrPlaceholder(companyStreet, PLACEHOLDERS.companyStreet);
+    $: resolvedCompanyZip = textOrPlaceholder(companyZip, PLACEHOLDERS.companyZip);
+    $: resolvedCompanyCity = textOrPlaceholder(companyCity, PLACEHOLDERS.companyCity);
+    $: resolvedCompanyAddress = [resolvedCompanyStreet, `${resolvedCompanyZip} ${resolvedCompanyCity}`.trim()]
+        .filter(Boolean)
+        .join("\n");
+    $: resolvedCompanyEmail = textOrPlaceholder(companyEmail, PLACEHOLDERS.companyEmail);
+    $: resolvedCompanyPhone = textOrPlaceholder(companyPhone, PLACEHOLDERS.companyPhone);
+    $: resolvedCompanyWebsite = textOrPlaceholder(companyWebsite, PLACEHOLDERS.companyWebsite);
+    $: resolvedCompanyVatNumber = textOrPlaceholder(companyVatNumber, PLACEHOLDERS.companyVatNumber);
 
     $: resolvedBankName = textOrPlaceholder(bankName, PLACEHOLDERS.bankName);
     $: resolvedBankLocation = textOrPlaceholder(
@@ -732,7 +727,20 @@
 
         const company = template.company || {};
         companyName = company.name ?? companyName;
-        companyAddress = company.address ?? companyAddress;
+        const addressString = company.address ?? "";
+        if (addressString) {
+            const lines = addressString
+                .split(/\r?\n/)
+                .map((/** @type {string} */ line) => line.trim())
+                .filter(Boolean);
+            if (lines[0]) companyStreet = lines[0];
+            if (lines[1]) {
+                const [zip, ...cityParts] = lines[1].split(" ");
+                if (zip) companyZip = zip;
+                const city = cityParts.join(" ").trim();
+                if (city) companyCity = city;
+            }
+        }
         companyEmail = company.email ?? companyEmail;
         companyPhone = company.phone ?? companyPhone;
         companyWebsite = company.website ?? companyWebsite;
@@ -818,6 +826,24 @@
 
     $: positionChunks = chunkPositions(resolvedPositions);
     $: totalPages = positionChunks.length || 1;
+
+    $: if (!initializedFromProfile && data?.profile) {
+        companyStreet = data.profile.addressStreet ?? companyStreet;
+        companyZip = data.profile.addressZip ?? companyZip;
+        companyCity = data.profile.addressCity ?? companyCity;
+        companyPhone = data.profile.phone ?? companyPhone;
+        companyWebsite = data.profile.website ?? companyWebsite;
+        companyVatNumber = data.profile.mwst ?? companyVatNumber;
+        bankName = data.profile.bankName ?? bankName;
+        bankLocation = data.profile.bankLocation ?? bankLocation;
+        bankAccount = data.profile.bankAccount ?? bankAccount;
+        bankIban = data.profile.bankIban ?? bankIban;
+        bankSwift = data.profile.bankSwift ?? bankSwift;
+        companyLogo = data.profile.logoData ?? companyLogo;
+        if (data.user?.name) companyName = companyName || data.user.name;
+        if (data.user?.email) companyEmail = companyEmail || data.user.email;
+        initializedFromProfile = true;
+    }
 
     /**
      * @param {number} pageIndex
@@ -936,12 +962,19 @@
                             />
                         </label>
                         <label>
-                            Adresse
-                            <textarea
-                                rows="2"
-                                bind:value={companyAddress}
-                                placeholder={PLACEHOLDERS.companyAddress}
-                            ></textarea>
+                            Strasse
+                            <input
+                                bind:value={companyStreet}
+                                placeholder={PLACEHOLDERS.companyStreet}
+                            />
+                        </label>
+                        <label>
+                            PLZ
+                            <input bind:value={companyZip} placeholder={PLACEHOLDERS.companyZip} />
+                        </label>
+                        <label>
+                            Ort
+                            <input bind:value={companyCity} placeholder={PLACEHOLDERS.companyCity} />
                         </label>
 
                         <label>
@@ -2057,8 +2090,7 @@
         line-height: 1.3;
     }
 
-    input,
-    textarea {
+    input {
         width: 100%;
         margin-top: 0.2rem;
         padding: 0.4rem 0.5rem;
@@ -2066,10 +2098,6 @@
         border: 1px solid #d1d5db;
         font-size: 0.9rem;
         box-sizing: border-box;
-    }
-
-    textarea {
-        resize: vertical;
     }
 
     .grid-2 {
