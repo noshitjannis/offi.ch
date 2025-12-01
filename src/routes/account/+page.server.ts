@@ -50,25 +50,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	deleteOffer: async ({ request, locals }) => {
-		if (!locals.user) {
-			throw redirect(302, "/login/basic");
-		}
-
-		const formData = await request.formData();
-		const offerId = formData.get("offerId");
-		if (!offerId || typeof offerId !== "string") {
-			throw redirect(302, "/account");
-		}
-
-		const db = await getDb();
-		await db.collection("offers").deleteOne({
-			_id: offerId,
-			userId: locals.user.id
-		} as Record<string, unknown>);
-
-		throw redirect(302, "/account");
-	},
 	deleteDraft: async ({ request, locals }) => {
 		if (!locals.user) {
 			throw redirect(302, "/login/basic");
