@@ -1,5 +1,6 @@
 <script>
     import { goto } from "$app/navigation";
+    import OptionCard from "$lib/components/OptionCard.svelte";
 
     const TEMPLATE_STORAGE_KEY = "offertio-template";
     const requiredPaths = [
@@ -147,16 +148,11 @@
     </div>
 
     <div class="options">
-        <div class="panel upload-panel">
-            <div class="panel-header">
-                <div class="panel-icon">
-                    <span class="icon-square" aria-hidden="true"></span>
-                </div>
-                <h2>Aus Vorlage starten</h2>
-                <p>Laden Sie eine JSON-Datei einer ausgefüllten Offerte hoch.</p>
-            </div>
-
-            <div class="dropzone-block">
+        <OptionCard
+            title="Aus Vorlage starten"
+            description="Laden Sie eine JSON-Datei einer ausgefüllten Offerte hoch."
+        >
+            <div class="dropzone-block" slot="content">
                 <div
                     class="dropzone"
                     class:dragging={isDragging}
@@ -189,19 +185,16 @@
                     <p class="error-text" role="alert">{uploadError}</p>
                 {/if}
             </div>
-        </div>
+        </OptionCard>
 
-        <a class="panel start-panel panel-link" href="/builder">
-            <div class="panel-header">
-                <div class="panel-icon alt">
-                    <span class="icon-square" aria-hidden="true"></span>
-                </div>
-                <h2>Neue Offerte erstellen</h2>
-                <p>Starten Sie leer und füllen Sie Schritt für Schritt Ihre Offerte aus.</p>
-            </div>
-
-            <span class="panel-button primary"> Neue Offerte erstellen </span>
-        </a>
+        <OptionCard
+            title="Neue Offerte erstellen"
+            description="Starten Sie leer und füllen Sie Schritt für Schritt Ihre Offerte aus."
+            href="/builder"
+            buttonText="Neue Offerte erstellen"
+            buttonVariant="secondary"
+            iconVariant="alt"
+        />
     </div>
 </section>
 
@@ -256,73 +249,6 @@
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 1rem;
         align-items: stretch;
-    }
-
-    .panel {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 1.25rem 1.25rem 1.5rem;
-        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        min-height: 260px;
-        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-    }
-
-    .panel-link {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .panel:hover,
-    .panel:focus-within {
-        transform: translateY(-4px);
-        border-color: #cbd5e1;
-        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
-    }
-
-    .panel-header {
-        margin-bottom: 0.75rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
-    .panel h2 {
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 800;
-        color: #0f172a;
-        letter-spacing: -0.01em;
-    }
-
-    .panel p {
-        margin: 0;
-        color: #475569;
-        line-height: 1.5;
-        max-width: 520px;
-    }
-
-    .panel-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: #eef2ff;
-        display: grid;
-        place-items: center;
-    }
-
-    .panel-icon.alt {
-        background: #e7f5ff;
-    }
-
-    .icon-square {
-        width: 22px;
-        height: 22px;
-        border-radius: 8px;
-        background: #cbd5f5;
     }
 
     .dropzone {
@@ -382,44 +308,6 @@
     .drop-sub {
         font-size: 0.9rem;
         color: #475569;
-    }
-
-    .panel-button {
-        margin-top: auto;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.7rem 1.2rem;
-        background: #0c3266;
-        color: #ffffff;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba(10, 34, 80, 0.18);
-        transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
-    }
-
-    .panel-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(10, 34, 80, 0.22);
-    }
-
-    .panel-button.primary {
-        background: #0f766e;
-        box-shadow: 0 2px 6px rgba(6, 78, 59, 0.18);
-    }
-
-    .panel-button.primary:hover {
-        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.22);
-    }
-
-    .panel-button:disabled {
-        background: #cbd5e1;
-        box-shadow: none;
-        cursor: not-allowed;
     }
 
     .error-text {
