@@ -37,6 +37,25 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
+	deleteDraft: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(302, "/login/basic");
+		}
+
+		const formData = await request.formData();
+		const draftId = formData.get("draftId");
+		if (!draftId || typeof draftId !== "string") {
+			throw redirect(302, "/account");
+		}
+
+		const db = await getDb();
+		await db.collection("drafts").deleteOne({
+			_id: draftId,
+			userId: locals.user.id
+		} as Record<string, unknown>);
+
+		throw redirect(302, "/account");
+	},
 	save: async ({ locals, request }) => {
 		if (!locals.user) {
 			throw redirect(302, "/login/basic");

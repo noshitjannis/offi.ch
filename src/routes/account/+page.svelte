@@ -7,6 +7,7 @@
     let logoDrag = false;
     let logoPreview: string | null = profile.logoData ?? null;
     let logoInput: HTMLInputElement | null = null;
+    let confirmDraftId: string | null = null;
 
     const setFilesOnInput = (file: File) => {
         if (!logoInput) return;
@@ -38,6 +39,10 @@
     const triggerLogoBrowse = () => {
         logoInput?.click();
     };
+
+    function confirmDelete(id: string) {
+        confirmDraftId = id;
+    }
 
     const handleLogoSelect = async (event: Event) => {
         const target = event.target as HTMLInputElement;
@@ -156,15 +161,37 @@
             </div>
             <div class="draft-list">
                 {#each data.drafts as draft}
-                    <a class="draft-row" href={`/builder?draft=${draft.id}`}>
-                        <div class="draft-name">{draft.name ?? "Entwurf"}</div>
-                        <div class="draft-date">
-                            {draft.updatedAt
-                                ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
-                                : ""}
-                        </div>
-                    </a>
+                    <div class="draft-row">
+                        <a class="draft-link" href={`/builder?draft=${draft.id}`}>
+                            <div class="draft-name">{draft.name ?? "Entwurf"}</div>
+                            <div class="draft-date">
+                                {draft.updatedAt
+                                    ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
+                                    : ""}
+                            </div>
+                        </a>
+                        <button class="delete-btn" type="button" on:click={() => confirmDelete(draft.id)}>
+                            Löschen
+                        </button>
+                    </div>
                 {/each}
+            </div>
+        </div>
+    {/if}
+
+    {#if confirmDraftId}
+        <div class="modal-backdrop">
+            <div class="modal">
+                <p>Diese Aktion kann nicht rückgängig gemacht werden. Gelöscht ist gelöscht. Weiterfahren?</p>
+                <div class="modal-actions">
+                    <button type="button" class="ghost" on:click={() => (confirmDraftId = null)}>
+                        Abbrechen
+                    </button>
+                    <form method="POST" action="?/deleteDraft">
+                        <input type="hidden" name="draftId" value={confirmDraftId} />
+                        <button type="submit" class="danger-btn">Definitiv löschen</button>
+                    </form>
+                </div>
             </div>
         </div>
     {/if}
@@ -388,6 +415,95 @@
     .draft-date {
         color: #475569;
         font-size: 0.95rem;
+    }
+
+    .draft-link {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        flex: 1;
+    }
+
+    .delete-btn {
+        border: 1px solid #fecdd3;
+        background: #fff1f2;
+        color: #be123c;
+        font-weight: 700;
+        padding: 0.5rem 0.9rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    .delete-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(190, 18, 60, 0.18);
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        display: grid;
+        place-items: center;
+        z-index: 20;
+        padding: 1rem;
+    }
+
+    .modal {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        width: min(420px, 100%);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+    }
+
+    .modal p {
+        margin: 0 0 1rem;
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .ghost {
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: #0f172a;
+        font-weight: 700;
+        padding: 0.55rem 0.9rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    .ghost:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .danger-btn {
+        border: 1px solid #fecdd3;
+        background: #be123c;
+        color: #fff;
+        font-weight: 700;
+        padding: 0.55rem 0.9rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    .danger-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(190, 18, 60, 0.2);
+        background: #9f1239;
     }
 
     .logo-dropzone {
