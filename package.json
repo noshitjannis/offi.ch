@@ -21,8 +21,12 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
+		"@lucia-auth/adapter-mongodb": "^1.0.3",
+		"arctic": "^3.7.0",
 		"html2pdf.js": "^0.12.1",
 		"jspdf": "^3.0.3",
-		"jspdf-autotable": "^5.0.2"
+		"jspdf-autotable": "^5.0.2",
+		"lucia": "^3.2.2",
+		"mongodb": "^6.21.0"
 	}
 }

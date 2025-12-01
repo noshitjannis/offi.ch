@@ -2,7 +2,7 @@
 <section>
   <h2>Professionelle Offerten ohne Excel-Chaos</h2>
   <p>
-    Offertio unterstuetzt kleine Dienstleistungsbetriebe bei der strukturierten Erstellung von Offerten.
+    Offi unterstuetzt kleine Dienstleistungsbetriebe bei der strukturierten Erstellung von Offerten.
   </p>
 
   <p>

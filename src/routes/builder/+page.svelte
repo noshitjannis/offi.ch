@@ -98,11 +98,11 @@
     });
 
     const PLACEHOLDERS = {
-        companyName: "Offertino",
+        companyName: "Offi.ch",
         companyAddress: "Offertenstrasse 1\n8000 Offer",
-        companyEmail: "info@offertino.ch",
+        companyEmail: "info@offi.ch",
         companyPhone: "+41 44 123 45 67",
-        companyWebsite: "www.offertino.ch",
+        companyWebsite: "www.offi.ch",
         companyVatNumber: "CHE-123.456.789 MWST",
         bankName: "Musterbank",
         bankLocation: "CH-3030 Musterstadt",
@@ -119,7 +119,7 @@
         offerValidityDays: 30,
         deliveryText: "nach Vereinbarung",
         contactPerson: "Tino Offer",
-        contactEmail: "tino@offertino.ch",
+        contactEmail: "tino@offi.ch",
         contactPhone: "+41 44 765 43 21",
         vatRate: 8.1,
         discountPercent: 0,
@@ -173,6 +173,7 @@
     let offerSubject = "";
     let offerDate = ""; // Offertdatum
     let requestDate = ""; // Datum der Anfrage
+    /** @type {string | number} */
     let offerValidityDays = "";
     let deliveryText = "";
 
@@ -183,6 +184,7 @@
 
     // Steuer / Rabatt
     let vatRate = PLACEHOLDERS.vatRate;
+    /** @type {string | number} */
     let discountPercent = "";
     let discountLabel = "";
 
@@ -191,6 +193,7 @@
     const TEMPLATE_STORAGE_KEY = "offertio-template";
 
     // Positionen mit Artikelnummer
+    /** @type {{articleNumber: string; description: string; quantity: string | number; unitPrice: string | number;}[]} */
     let positions = POSITION_PLACEHOLDERS.map(() => ({
         articleNumber: "",
         description: "",
@@ -693,11 +696,17 @@
     async function downloadPdf() {
         if (typeof window === "undefined" || !html2pdf) return;
 
-        const element = document.getElementById("pdf-preview");
-        if (!element) return;
-
         isExporting = true;
         await tick(); // wait for exporting styles (scale 1, no transform jitter)
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const element =
+            document.getElementById("pdf-export") ||
+            document.getElementById("pdf-preview");
+        if (!element) {
+            isExporting = false;
+            return;
+        }
 
         /** @type {any} */
         const opt = {
@@ -715,6 +724,9 @@
         }
     }
 
+    /**
+     * @param {any} template
+     */
     function applyTemplateData(template) {
         if (!template || typeof template !== "object") return;
 
@@ -769,12 +781,14 @@
         discountLabel = tax.discountLabel ?? discountLabel;
 
         if (Array.isArray(template.positions)) {
-            const mapped = template.positions.map((pos) => ({
-                articleNumber: pos?.articleNumber ?? "",
-                description: pos?.description ?? "",
-                quantity: Number(pos?.quantity ?? 0) || 0,
-                unitPrice: Number(pos?.unitPrice ?? 0) || 0,
-            }));
+            const mapped = template.positions.map(
+                (pos /** @type {{articleNumber?: string | number; description?: string; quantity?: string | number; unitPrice?: string | number;}} */) => ({
+                    articleNumber: pos?.articleNumber ?? "",
+                    description: pos?.description ?? "",
+                    quantity: Number(pos?.quantity ?? 0) || 0,
+                    unitPrice: Number(pos?.unitPrice ?? 0) || 0,
+                }),
+            );
             if (mapped.length) {
                 positions = mapped;
             }
@@ -1152,7 +1166,7 @@
                                     type="number"
                                     step="0.1"
                                     bind:value={vatRate}
-                                    placeholder={PLACEHOLDERS.vatRate}
+                                    placeholder={String(PLACEHOLDERS.vatRate)}
                                 />
                             </label>
 
@@ -1162,7 +1176,7 @@
                                     type="number"
                                     step="0.1"
                                     bind:value={discountPercent}
-                                    placeholder={PLACEHOLDERS.discountPercent}
+                                    placeholder={String(PLACEHOLDERS.discountPercent)}
                                 />
                             </label>
                         </div>
@@ -1182,7 +1196,7 @@
                                     type="number"
                                     min="1"
                                     bind:value={offerValidityDays}
-                                    placeholder={PLACEHOLDERS.offerValidityDays}
+                                    placeholder={String(PLACEHOLDERS.offerValidityDays)}
                                 />
                             </label>
 
@@ -1328,7 +1342,7 @@
                                     type="number"
                                     min="0"
                                     step="0.5"
-                                    placeholder={positionPlaceholder.quantity}
+                                    placeholder={String(positionPlaceholder.quantity)}
                                     bind:value={pos.quantity}
                                 />
                                 <input
@@ -1336,7 +1350,7 @@
                                     type="number"
                                     min="0"
                                     step="1"
-                                    placeholder={positionPlaceholder.unitPrice}
+                                    placeholder={String(positionPlaceholder.unitPrice)}
                                     bind:value={pos.unitPrice}
                                 />
                                 <button
@@ -1439,7 +1453,7 @@
                                 <header class="pdf-header">
                                     <div class="logo-block">
                                         <img
-                                            src={companyLogo || "/offertino_logo_small.png"}
+                                            src={companyLogo || "/offi_logo_small.png"}
                                             alt="Firmenlogo"
                                         />
                                     </div>
@@ -1497,6 +1511,14 @@
                                 <div class="intro-spacer"></div>
 
                                 <table class="offer-table">
+                                    <colgroup>
+                                        <col class="col-pos" />
+                                        <col class="col-art" />
+                                        <col class="col-desc" />
+                                        <col class="col-qty" />
+                                        <col class="col-price" />
+                                        <col class="col-total" />
+                                    </colgroup>
                                     <thead>
                                         <tr>
                                             <th class="col-pos right">Pos.</th>
@@ -1581,6 +1603,170 @@
                         </div>
                     {/each}
                 </div>
+            </div>
+        </div>
+        <div
+            id="pdf-export"
+            class:exporting={isExporting}
+            aria-hidden={!isExporting}
+        >
+            <div class="pdf-export-pages">
+                {#each positionChunks as chunk, pageIndex}
+                    <article
+                        class="pdf-page export-page"
+                        aria-label={`Offerte Export Seite ${pageIndex + 1} von ${totalPages}`}
+                    >
+                        <header class="pdf-header">
+                            <div class="logo-block">
+                                <img
+                                    src={companyLogo || "/offi_logo_small.png"}
+                                    alt="Firmenlogo"
+                                />
+                            </div>
+                            <div class="sender-contact">
+                                <div class="sender-address">
+                                    <strong>{resolvedCompanyName}</strong><br />
+                                    {#each addressLines(resolvedCompanyAddress) as line}
+                                        {line}<br />
+                                    {/each}
+                                </div>
+                                <div>{resolvedCompanyEmail}</div>
+                                <div>{resolvedCompanyPhone}</div>
+                                <div>{resolvedCompanyWebsite}</div>
+                            </div>
+                        </header>
+
+                        <div class="customer-block">
+                            <strong>{resolvedCustomerName}</strong>
+                            <div>{resolvedCustomerStreet}</div>
+                            <div>{resolvedCustomerZipCity}</div>
+                        </div>
+
+                        <table class="offer-meta">
+                            <tbody>
+                                <tr>
+                                    <td>Offerte Nr.:</td>
+                                    <td>{resolvedOfferNumber}</td>
+                                    <td>Ansprechpartner:</td>
+                                    <td>{resolvedContactPerson}</td>
+                                </tr>
+                                <tr>
+                                    <td>Datum:</td>
+                                    <td>{formatIsoDate(resolvedOfferDate)}</td>
+                                    <td>E-Mail:</td>
+                                    <td>{resolvedContactEmail}</td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td>Telefon:</td>
+                                    <td>{resolvedContactPhone}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="meta-spacer"></div>
+
+                        <h3 class="offer-title">{resolvedOfferSubject}</h3>
+                        <p class="intro">
+                            Sehr geehrte Damen und Herren
+                        </p>
+                        <p class="intro">
+                            Vielen Dank für Ihre Offertenanfrage vom {formatIsoDate(resolvedRequestDate)}.
+                            Gerne unterbreiten Ihnen unser Angebot wie folgt:
+                        </p>
+                        <div class="intro-spacer"></div>
+
+                        <table class="offer-table">
+                            <colgroup>
+                                <col class="col-pos" />
+                                <col class="col-art" />
+                                <col class="col-desc" />
+                                <col class="col-qty" />
+                                <col class="col-price" />
+                                <col class="col-total" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th class="col-pos right">Pos.</th>
+                                    <th class="col-art">Art.-Nr.</th>
+                                    <th class="col-desc">Bezeichnung</th>
+                                    <th class="col-qty right">Menge</th>
+                                    <th class="col-price right">Einzelpreis</th>
+                                    <th class="col-total right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#if chunk.rows.length}
+                                    {#each chunk.rows as position, rowIndex}
+                                        {@const qty = Number(position.quantity) || 0}
+                                        {@const unit = Number(position.unitPrice) || 0}
+                                        {@const rowTotal = qty * unit}
+                                        <tr>
+                                            <td class="right">
+                                                {getPositionNumber(pageIndex, rowIndex)}
+                                            </td>
+                                            <td>{position.articleNumber || "—"}</td>
+                                            <td>{position.description || "Beschreibung folgt"}</td>
+                                            <td class="right">{qty}</td>
+                                            <td class="right">{formatCurrency(unit)}</td>
+                                            <td class="right">{formatCurrency(rowTotal)}</td>
+                                        </tr>
+                                    {/each}
+                                {:else}
+                                    <tr>
+                                        <td colspan="6">Keine Positionen erfasst.</td>
+                                    </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+
+                        {#if pageIndex === totalPages - 1}
+                            <div class="totals">
+                                {#if resolvedDiscountPercent > 0}
+                                    <div class="row">
+                                        <span>Zwischensumme</span>
+                                        <span>{formatCurrency(subtotal)}</span>
+                                    </div>
+                                    <div class="row">
+                                        <span>{displayDiscountLabel}</span>
+                                        <span>-{formatCurrency(discountAmount)}</span>
+                                    </div>
+                                    <div class="row">
+                                        <span>Zwischensumme</span>
+                                        <span>{formatCurrency(subtotalAfterDiscount)}</span>
+                                    </div>
+                                {:else}
+                                    <div class="row">
+                                        <span>Zwischensumme</span>
+                                        <span>{formatCurrency(subtotalAfterDiscount)}</span>
+                                    </div>
+                                {/if}
+                                <div class="row">
+                                    <span>MWST {resolvedVatRate}%</span>
+                                    <span>{formatCurrency(vatAmount)}</span>
+                                </div>
+                                <div class="row total">
+                                    <span>Total</span>
+                                    <span>{formatCurrency(total)}</span>
+                                </div>
+                            </div>
+                            <div class="closing">
+                                Freundliche Grüsse<br />
+                                <b>{resolvedContactPerson}</b><br />
+                                <b>{resolvedCompanyName}</b>
+                            </div>
+                            <div class="note">
+                                Mehrwertsteuer: {resolvedCompanyVatNumber}
+                                Bankverbindung: {resolvedBankName}, {resolvedBankLocation} · Konto: {resolvedBankAccount} · IBAN:
+                                {resolvedBankIban} · SWIFT: {resolvedBankSwift}
+                            </div>
+                        {:else}
+                            <div class="note">Fortsetzung auf der nächsten Seite</div>
+                        {/if}
+
+                        <footer class="pdf-footer">Seite {pageIndex + 1} / {totalPages}</footer>
+                    </article>
+                {/each}
             </div>
         </div>
         <p class="page-indicator-text">
@@ -1944,6 +2130,41 @@
         height: auto;
     }
 
+    #pdf-export {
+        display: none;
+    }
+
+    #pdf-export.exporting {
+        display: block;
+        position: static;
+        overflow: visible;
+        padding: 0;
+    }
+
+    #pdf-export .pdf-export-pages {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+    }
+
+    #pdf-export .pdf-page {
+        position: static;
+        left: auto;
+        top: auto;
+        transform: none;
+        margin: 0 auto 0.5rem;
+        border: none;
+        box-shadow: none;
+        page-break-after: always;
+        --preview-scale: 1;
+    }
+
+    #pdf-export .pdf-page:last-child {
+        page-break-after: auto;
+        margin-bottom: 0;
+    }
+
     .pdf-body {
         flex: 1 1 auto;
         width: 100%;
@@ -1961,63 +2182,6 @@
         margin: 0.5rem 0 0.75rem;
         font-size: 1rem;
     }
-
-    .offer-table {
-        width: 90%;
-        border-collapse: collapse;
-        margin-bottom: 0.75rem;
-        table-layout: fixed;
-    }
-
-    .offer-table th,
-    .offer-table td {
-        border-bottom: 1px solid #e5e7eb;
-        padding: 0.4rem 0.3rem;
-        text-align: left;
-    }
-
-    .offer-table th.right,
-    .offer-table td.right {
-        text-align: right;
-    }
-
-    .offer-table .col-pos {
-        width: 4%;
-        text-align: center!important;
-    }
-
-    .offer-table .col-art {
-        width: 12%;
-        text-align: center!important;
-    }
-
-    .offer-table .col-desc {
-        width: 40%;
-    }
-
-    .offer-table .col-qty {
-        width: 10%;
-    }
-
-    .offer-table .col-price,
-    .offer-table .col-total {
-        width: 15%;
-    }
-
-    .offer-table th.col-qty,
-    .offer-table th.col-price,
-    .offer-table th.col-total,
-    .offer-table td:nth-child(4),
-    .offer-table td:nth-child(5),
-    .offer-table td:nth-child(6) {
-        white-space: nowrap;
-    }
-
-    .offer-table th.col-desc,
-    .offer-table td:nth-child(3) {
-        white-space: normal;
-    }
-
 
     .totals {
         margin-top: 0.5rem;
@@ -2059,6 +2223,7 @@
         position: relative;
         height: calc(var(--page-height) * var(--preview-scale, 1));
         min-height: calc(var(--page-height) * var(--preview-scale, 1));
+
     }
 
     #pdf-preview.exporting .pdf-page-wrapper {
@@ -2067,8 +2232,8 @@
     }
 
     .pdf-page {
-        width: var(--page-width);
-        min-height: var(--page-height);
+        width: var(--page-width, 210mm);
+        min-height: var(--page-height, 296mm);
         padding: 20mm 20mm 25mm 20mm;
         background: white;
         border: 1px solid #e5e7eb; /* nur für die Vorschau im Browser */
@@ -2216,10 +2381,11 @@
     .offer-table th,
     .offer-table td {
         border-bottom: 1px solid #e5e7eb;
-        padding: 0.3rem 0.25rem;
+        padding: 0.35rem 0.3rem;
         text-align: left;
         vertical-align: top;
         white-space: normal;
+        word-break: break-word;
     }
 
     .offer-table thead th {
@@ -2227,30 +2393,28 @@
         font-weight: 600;
     }
 
-    .offer-table th.right,
-    .offer-table td.right {
+    .offer-table .right {
         text-align: right;
     }
 
-    .offer-table .col-pos {
-        width: 4%;
-        text-align: left;
+    .offer-table col.col-pos {
+        width: 8%;
     }
 
-    .offer-table .col-art {
+    .offer-table col.col-art {
         width: 12%;
     }
 
-    .offer-table .col-desc {
+    .offer-table col.col-desc {
         width: 40%;
     }
 
-    .offer-table .col-qty {
+    .offer-table col.col-qty {
         width: 10%;
     }
 
-    .offer-table .col-price,
-    .offer-table .col-total {
+    .offer-table col.col-price,
+    .offer-table col.col-total {
         width: 15%;
     }
 
@@ -2266,6 +2430,11 @@
     .offer-table th.col-desc,
     .offer-table td:nth-child(3) {
         white-space: normal;
+    }
+
+    .offer-table tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .totals {

@@ -1,14 +1,14 @@
 
 <svelte:head>
-  <title>Offertino</title>
+  <title>Offi</title>
 </svelte:head>
 
 <div class="app">
   <header class="header">
     <div class="header-inner">
       <a class="brand" href="/">
-        <img src="/offertino_logo.svg" alt="Offertio" />
-        <span class="sr-only">Offertio</span>
+        <img src="/offi_logo.svg" alt="Logo Offi" />
+        <span class="sr-only">Offi</span>
       </a>
 
       <div class="header-actions">
@@ -72,7 +72,7 @@
 
   .brand img {
     display: block;
-    height: 56px;
+    height: 50px;
   }
 
   .sr-only {
