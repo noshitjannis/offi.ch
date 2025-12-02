@@ -2054,11 +2054,19 @@
     </div>
 {/if}
 <style>
+    :global(.main) {
+        max-width: none;
+        width: 100%;
+        padding: 0 1.5rem;
+        box-sizing: border-box;
+    }
+
     .builder {
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
         gap: 1.5rem;
         align-items: flex-start;
+        width: 100%;
     }
 
     .builder-left,
