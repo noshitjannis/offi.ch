@@ -1,4 +1,5 @@
 <script lang="ts">
+    import HeroBox from "$lib/components/HeroBox.svelte";
     export let form;
 
     let passwordVisible = false;
@@ -9,13 +10,12 @@
 </svelte:head>
 
 <section class="page">
-    <div class="hero">
-        <p class="eyebrow">Registrieren</p>
-        <h1>Neuen Offertino-Account erstellen</h1>
-        <p class="lede">
-            Legen Sie einen Account an, um Ihre Offerten zu speichern und später weiterzubearbeiten.
-        </p>
-    </div>
+    <HeroBox
+        eyebrow="Registrieren"
+        title="Neuen Offertino-Account erstellen"
+        description="Legen Sie einen Account an, um Ihre Offerten zu speichern und später weiterzubearbeiten."
+        flat
+    />
 
     <div class="card">
         <form method="POST" action="?/register" class="form">
@@ -95,39 +95,6 @@
         padding: 2.75rem 1.5rem 3.5rem;
         box-sizing: border-box;
         align-items: center;
-    }
-
-    .hero {
-        width: min(960px, 100%);
-        padding: 1.5rem 1.75rem;
-        border-radius: 16px;
-        background: radial-gradient(circle at 20% 20%, #e7f0ff, #f5f7fb 40%);
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
-    }
-
-    .eyebrow {
-        margin: 0 0 0.35rem;
-        font-weight: 700;
-        font-size: 0.85rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #1d4ed8;
-    }
-
-    .hero h1 {
-        margin: 0 0 0.4rem;
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #0b1530;
-        letter-spacing: -0.015em;
-    }
-
-    .lede {
-        margin: 0;
-        color: #475569;
-        max-width: 640px;
-        line-height: 1.6;
     }
 
     .card {
@@ -237,10 +204,6 @@
     @media (max-width: 640px) {
         .page {
             padding: 2.5rem 1rem;
-        }
-
-        .hero {
-            padding: 1.25rem 1.1rem;
         }
 
         .password-input {

@@ -681,6 +681,10 @@
         };
     }
 
+    const closeSaveBlocker = () => {
+        showSaveBlocker = false;
+    };
+
     async function saveDraft() {
         if (!data?.user) {
             showSaveBlocker = true;
@@ -1679,12 +1683,6 @@
                 {#if saveMessage}
                     <span class="save-message">{saveMessage}</span>
                 {/if}
-                {#if showSaveBlocker}
-                    <span class="save-blocker">
-                        Du kannst Offerten nur zwischenspeichern, wenn du einen Account hast.
-                        <a href="/login/register">Jetzt registrieren</a>
-                    </span>
-                {/if}
             </div>
         </div>
         <div
@@ -2026,6 +2024,35 @@
         </p>
     </div>
 </section>
+
+{#if showSaveBlocker}
+    <div class="save-blocker-modal-backdrop" on:click={closeSaveBlocker}>
+        <div
+            class="save-blocker-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="save-blocker-title"
+            aria-describedby="save-blocker-text"
+            tabindex="-1"
+            on:click|stopPropagation
+        >
+            <button class="save-blocker-close" type="button" aria-label="Schliessen" on:click={closeSaveBlocker}>
+                ×
+            </button>
+            <p class="save-blocker-title" id="save-blocker-title">
+                Offerten speichern mit Account
+            </p>
+            <p class="save-blocker-text" id="save-blocker-text">
+                Du kannst Offerten nur zwischenspeichern, wenn du angemeldet bist. Melde dich an oder registriere dich,
+                um deine Offerte zu sichern.
+            </p>
+            <div class="save-blocker-actions">
+                <a class="save-blocker-secondary" href="/login">Anmelden</a>
+                <a class="save-blocker-primary" href="/login/register">Jetzt registrieren</a>
+            </div>
+        </div>
+    </div>
+{/if}
 <style>
     .builder {
         display: grid;
@@ -2093,19 +2120,99 @@
         font-size: 0.9rem;
     }
 
-    .save-blocker {
-        background: #fff1f2;
-        color: #be123c;
-        padding: 0.35rem 0.55rem;
-        border-radius: 8px;
-        border: 1px solid #fecdd3;
-        font-size: 0.9rem;
+    .save-blocker-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        display: grid;
+        place-items: center;
+        z-index: 20;
+        padding: 1rem;
     }
 
-    .save-blocker a {
-        color: #0c3266;
+    .save-blocker-modal {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        width: min(440px, 100%);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+        position: relative;
+    }
+
+    .save-blocker-title {
+        margin: 0 0 0.4rem;
         font-weight: 700;
-        margin-left: 0.35rem;
+        font-size: 1.05rem;
+        color: #0f172a;
+    }
+
+    .save-blocker-text {
+        margin: 0 0 1rem;
+        color: #475569;
+        line-height: 1.5;
+    }
+
+    .save-blocker-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .save-blocker-actions a,
+    .save-blocker-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1px solid transparent;
+        text-decoration: none;
+        padding: 0.55rem 0.9rem;
+        transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease;
+    }
+
+    .save-blocker-close {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        color: #94a3b8;
+        padding: 0.35rem;
+        border-radius: 8px;
+        transition: background 120ms ease, color 120ms ease;
+    }
+
+    .save-blocker-close:hover {
+        background: #f8fafc;
+        color: #0f172a;
+    }
+
+    .save-blocker-primary {
+        background: linear-gradient(135deg, #0c3266, #2563eb);
+        color: #fff;
+    }
+
+    .save-blocker-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    .save-blocker-secondary {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #e2e8f0;
+    }
+
+    .save-blocker-secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
     }
 
 

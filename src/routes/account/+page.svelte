@@ -388,7 +388,6 @@
                                             type="text"
                                             bind:value={nameEdit.value}
                                             placeholder="Neuer Titel"
-                                            autofocus
                                         />
                                         <div class="rename-actions">
                                             <button class="ghost" type="button" on:click={() => (nameEdit = null)}>
@@ -474,7 +473,6 @@
                                             type="text"
                                             bind:value={nameEdit.value}
                                             placeholder="Neuer Titel"
-                                            autofocus
                                         />
                                         <div class="rename-actions">
                                             <button class="ghost" type="button" on:click={() => (nameEdit = null)}>
@@ -565,11 +563,6 @@
         flex-direction: column;
         gap: 0.75rem;
     }
-    .form-card {
-        width: min(640px, 100%);
-        gap: 0.5rem;
-    }
-
     .drafts-card {
         width: min(800px, 100%);
         gap: 0.5rem;
@@ -825,12 +818,6 @@
         color: #0b2a57;
     }
 
-    .logo-dropzone-subtext {
-        margin: 0;
-        font-size: 0.8rem;
-        color: #6b7280;
-    }
-
     .logo-dropzone-preview {
         display: block;
         max-width: 240px;
@@ -1019,31 +1006,10 @@
         word-break: break-word;
     }
 
-    .info-grid.editable input {
-        font: inherit;
-        padding: 0.6rem 0.75rem;
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        background: #fff;
-        transition: border-color 130ms ease, box-shadow 130ms ease, background 130ms ease;
-    }
-
-    .info-grid.editable input:focus {
-        outline: none;
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
-
     .form-actions {
         justify-content: flex-end;
     }
 
-
-    .form-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
 
     .subhead {
         margin: 0;
@@ -1057,12 +1023,6 @@
         color: #475569;
         font-size: 0.95rem;
         line-height: 1.5;
-    }
-
-    .stack {
-        display: flex;
-        flex-direction: column;
-        gap: 0.9rem;
     }
 
     label {
