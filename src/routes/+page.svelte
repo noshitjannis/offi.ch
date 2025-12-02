@@ -211,25 +211,19 @@
 
       <div class="step-grid">
         <div class="step-card" data-animate>
-          <div class="step-number">1</div>
-          <div>
-            <h3>Unternehmen & Kund:innen anlegen</h3>
-            <p>Firmendaten, MWST und Bankverbindung einmal im Account speichern und Kundenangaben ergänzen.</p>
-          </div>
+          <div class="step-badge">1</div>
+          <h3>Unternehmen & Kund:innen anlegen</h3>
+          <p>Firmendaten, MWST und Bankverbindung einmal im Account speichern und Kundenangaben ergänzen.</p>
         </div>
         <div class="step-card" data-animate style="animation-delay: 80ms">
-          <div class="step-number">2</div>
-          <div>
-            <h3>Offerte mit Bausteinen zusammenklicken</h3>
-            <p>Positionen erfassen, Rabatte hinzufügen, Zwischentotal prüfen und Felder per Validierung absichern.</p>
-          </div>
+          <div class="step-badge">2</div>
+          <h3>Offerte mit Bausteinen zusammenklicken</h3>
+          <p>Positionen erfassen, Rabatte hinzufügen, Zwischentotal prüfen und Felder per Validierung absichern.</p>
         </div>
         <div class="step-card" data-animate style="animation-delay: 160ms">
-          <div class="step-number">3</div>
-          <div>
-            <h3>PDF exportieren, senden und nachfassen</h3>
-            <p>Sauberes PDF oder JSON herunterladen und fertige Offerten später erneut als Entwurf öffnen.</p>
-          </div>
+          <div class="step-badge">3</div>
+          <h3>PDF exportieren, senden und nachfassen</h3>
+          <p>Sauberes PDF oder JSON herunterladen und fertige Offerten später erneut als Entwurf öffnen.</p>
         </div>
       </div>
     </div>
@@ -873,26 +867,27 @@
   }
 
   .step-card {
-    display: flex;
-    gap: 0.8rem;
+    display: grid;
+    gap: 0.4rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
-    padding: 1rem;
+    padding: 0.9rem;
     align-items: flex-start;
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
   }
 
-  .step-number {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    background: #1f5fff;
-    color: #ffffff;
-    font-weight: 800;
+  .step-badge {
     display: grid;
     place-items: center;
-    box-shadow: 0 8px 20px rgba(31, 95, 255, 0.3);
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: #0f172a;
+    font-weight: 800;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    align-self: flex-start;
   }
 
   .audience-grid {
