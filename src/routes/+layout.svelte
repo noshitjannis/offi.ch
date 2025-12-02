@@ -1,5 +1,7 @@
 
 <script lang="ts">
+  import { onMount } from "svelte";
+
   export let data;
   const ctaHref = data.user ? "/builder" : "/login";
   const navLinks = [
@@ -8,6 +10,46 @@
     { href: "/#templates", label: "Templates" }
   ];
   let menuOpen = false;
+  let isCondensed = false;
+  let hideHeader = false;
+  let lastScrollY = 0;
+
+  const handleNavClick = (event: MouseEvent, href: string) => {
+    if (!href.startsWith("/#")) return;
+
+    const targetId = href.slice(2);
+    const target = document.getElementById(targetId);
+
+    if (target) {
+      event.preventDefault();
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+
+    menuOpen = false;
+  };
+
+  onMount(() => {
+    lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const scrollingDown = currentY > lastScrollY + 5;
+      const scrollingUp = currentY < lastScrollY - 5;
+
+      isCondensed = currentY > 40;
+
+      if (scrollingDown && currentY > 80 && !menuOpen) {
+        hideHeader = true;
+      } else if (scrollingUp || currentY <= 80) {
+        hideHeader = false;
+      }
+
+      lastScrollY = currentY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  });
 </script>
 
 <svelte:head>
@@ -15,8 +57,8 @@
 </svelte:head>
 
 <div class="app">
-  <header class="header">
-    <div class="header-inner">
+  <header class={`header ${isCondensed ? "seamless" : ""} ${hideHeader ? "hidden" : ""}`}>
+    <div class={`header-inner ${isCondensed ? "condensed" : ""}`}>
       <a class="brand" href="/">
         <img src="/offi_logo.svg" alt="Logo Offi" />
         <span class="sr-only">Offi</span>
@@ -36,7 +78,7 @@
       <div class={`header-actions ${menuOpen ? "open" : ""}`}>
         <nav>
           {#each navLinks as link}
-            <a href={link.href} on:click={() => (menuOpen = false)}>{link.label}</a>
+            <a href={link.href} on:click={(event) => handleNavClick(event, link.href)}>{link.label}</a>
           {/each}
         </nav>
 
@@ -73,9 +115,24 @@
   }
 
   .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     background: transparent;
     color: #ffffff;
     padding: 0.75rem 0 1.25rem;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, padding 0.25s ease;
+    border-bottom: 0 solid transparent;
+  }
+
+  .header.hidden {
+    transform: translateY(-110%);
+  }
+
+  .header.seamless {
+    background: #ffffff;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #e2e8f0;
   }
 
   .header-inner {
@@ -93,6 +150,15 @@
     border-radius: 14px;
     box-shadow: 0 18px 36px rgba(13, 38, 76, 0.12);
     position: relative;
+    transition: all 0.25s ease;
+  }
+
+  .header-inner.condensed {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0.75rem 1.25rem;
   }
 
   .brand {
@@ -141,7 +207,7 @@
   .header-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 1rem;
   }
 
@@ -156,14 +222,16 @@
     color: #0f172a;
     font-size: 0.95rem;
     font-weight: 600;
-    padding: 0.4rem 0.1rem;
+    padding: 0.45rem 0.75rem;
     border-radius: 8px;
-    transition: color 0.15s ease, background 0.15s ease;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
   }
 
   nav a:hover {
+    border-color: #e2e8f0;
+    background: #f8fafc;
     color: #1f5fff;
-    background: #eef2ff;
   }
 
   .header-cta {

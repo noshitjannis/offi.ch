@@ -12,7 +12,7 @@
 <section class="page">
     <HeroBox
         eyebrow="Registrieren"
-        title="Neuen Offertino-Account erstellen"
+        title="Neuen Offi-Account erstellen"
         description="Legen Sie einen Account an, um Ihre Offerten zu speichern und später weiterzubearbeiten."
         flat
     />
