@@ -106,64 +106,253 @@
                     </button>
                 </div>
 
-                {#if profile.logoData}
-                    <div class="logo-wrap">
-                        <img src={profile.logoData} alt="Firmenlogo" />
+                {#if editing}
+                    <form class="info-sections editable" method="POST" action="?/save" enctype="multipart/form-data">
+                        <div class="info-section">
+                            <p class="section-title">Kontakt & Adresse</p>
+                            <div class="info-grid">
+                                <div class="info-row wide">
+                                    <span class="label">Logo</span>
+                                    <div
+                                        class="logo-dropzone inline"
+                                        class:dragging={logoDrag}
+                                        role="button"
+                                        tabindex="0"
+                                        aria-label="Firmenlogo hochladen"
+                                        on:click={triggerLogoBrowse}
+                                        on:keydown={(event) => {
+                                            if (event.key === "Enter" || event.key === " ") {
+                                                event.preventDefault();
+                                                triggerLogoBrowse();
+                                            }
+                                        }}
+                                        on:dragenter|preventDefault={handleLogoDragEnter}
+                                        on:dragover|preventDefault={handleLogoDragOver}
+                                        on:dragleave={handleLogoDragLeave}
+                                        on:drop|preventDefault={handleLogoDrop}
+                                    >
+                                        {#if logoPreview}
+                                            <img class="logo-dropzone-preview" src={logoPreview} alt="Firmenlogo" />
+                                            <p class="logo-dropzone-text small">
+                                                Logo ersetzen? Klicken oder neue Datei ablegen.
+                                            </p>
+                                        {:else}
+                                            <div class="logo-dropzone-icon" aria-hidden="true">🗂️</div>
+                                            <p class="logo-dropzone-text small">
+                                                Logo hierhin ziehen oder klicken, um PNG/JPG hochzuladen
+                                            </p>
+                                        {/if}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg"
+                                        name="logo"
+                                        class="logo-file-input"
+                                        bind:this={logoInput}
+                                        on:change={handleLogoSelect}
+                                    />
+                                </div>
+
+                                <div class="info-row">
+                                    <label class="label" for="email">E-Mail</label>
+                                    <input id="email" name="email" type="text" value={data.user.email} readonly />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="name">Firmenname</label>
+                                    <input id="name" name="name" type="text" value={data.user.name ?? ""} />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="addressStreet">Adresse</label>
+                                    <input
+                                        id="addressStreet"
+                                        name="addressStreet"
+                                        type="text"
+                                        placeholder="Musterweg 10"
+                                        value={profile.addressStreet ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="addressZip">PLZ</label>
+                                    <input
+                                        id="addressZip"
+                                        name="addressZip"
+                                        type="text"
+                                        placeholder="8000"
+                                        value={profile.addressZip ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="addressCity">Ort</label>
+                                    <input
+                                        id="addressCity"
+                                        name="addressCity"
+                                        type="text"
+                                        placeholder="Zürich"
+                                        value={profile.addressCity ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="phone">Telefon</label>
+                                    <input
+                                        id="phone"
+                                        name="phone"
+                                        type="text"
+                                        placeholder="+41 44 123 45 67"
+                                        value={profile.phone ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="website">Website</label>
+                                    <input id="website" name="website" type="text" placeholder="offi.ch" value={profile.website ?? ""} />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="mwst">MWST</label>
+                                    <input
+                                        id="mwst"
+                                        name="mwst"
+                                        type="text"
+                                        placeholder="CHE-123.456.789 MWST"
+                                        value={profile.mwst ?? ""}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <p class="section-title">Bankverbindung</p>
+                            <div class="info-grid">
+                                <div class="info-row">
+                                    <label class="label" for="bankName">Bank</label>
+                                    <input
+                                        id="bankName"
+                                        name="bankName"
+                                        type="text"
+                                        placeholder="Zürcher Kantonalbank"
+                                        value={profile.bankName ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="bankLocation">Bank-Ort</label>
+                                    <input
+                                        id="bankLocation"
+                                        name="bankLocation"
+                                        type="text"
+                                        placeholder="Zürich"
+                                        value={profile.bankLocation ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="bankAccount">Kontonummer</label>
+                                    <input
+                                        id="bankAccount"
+                                        name="bankAccount"
+                                        type="text"
+                                        placeholder="12-345678-0"
+                                        value={profile.bankAccount ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="bankIban">IBAN</label>
+                                    <input
+                                        id="bankIban"
+                                        name="bankIban"
+                                        type="text"
+                                        placeholder="CH93 0076 2011 6238 5295 7"
+                                        value={profile.bankIban ?? ""}
+                                    />
+                                </div>
+                                <div class="info-row">
+                                    <label class="label" for="bankSwift">SWIFT</label>
+                                    <input
+                                        id="bankSwift"
+                                        name="bankSwift"
+                                        type="text"
+                                        placeholder="ZKBKCHZZ80A"
+                                        value={profile.bankSwift ?? ""}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="actions form-actions">
+                            <button type="submit">Speichern</button>
+                        </div>
+                    </form>
+                {:else}
+                    <div class="info-sections">
+                        <div class="info-section">
+                            <p class="section-title">Kontakt & Adresse</p>
+                            <div class="info-grid">
+                                {#if profile.logoData}
+                                    <div class="info-row wide logo-display">
+                                        <span class="label">Logo</span>
+                                        <div class="logo-wrap">
+                                            <img src={profile.logoData} alt="Firmenlogo" />
+                                        </div>
+                                    </div>
+                                {/if}
+                                <div class="info-row">
+                                    <span class="label">E-Mail</span>
+                                    <span class="value">{data.user.email}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Firmenname</span>
+                                    <span class="value">{data.user.name ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Adresse</span>
+                                    <span class="value">{profile.addressStreet ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">PLZ</span>
+                                    <span class="value">{profile.addressZip ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Ort</span>
+                                    <span class="value">{profile.addressCity ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Telefon</span>
+                                    <span class="value">{profile.phone ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Website</span>
+                                    <span class="value">{profile.website ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">MWST</span>
+                                    <span class="value">{profile.mwst ?? "—"}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <p class="section-title">Bankverbindung</p>
+                            <div class="info-grid">
+                                <div class="info-row">
+                                    <span class="label">Bank</span>
+                                    <span class="value">{profile.bankName ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Bank-Ort</span>
+                                    <span class="value">{profile.bankLocation ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Kontonummer</span>
+                                    <span class="value">{profile.bankAccount ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">IBAN</span>
+                                    <span class="value">{profile.bankIban ?? "—"}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">SWIFT</span>
+                                    <span class="value">{profile.bankSwift ?? "—"}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 {/if}
-
-                <div class="info-grid">
-                    <div class="info-row">
-                        <span class="label">E-Mail</span>
-                        <span class="value">{data.user.email}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Firmenname</span>
-                        <span class="value">{data.user.name ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Adresse</span>
-                        <span class="value">{profile.addressStreet ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">PLZ / Ort</span>
-                        <span class="value">
-                            {(profile.addressZip ?? "—") + " " + (profile.addressCity ?? "")}
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Telefon</span>
-                        <span class="value">{profile.phone ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Website</span>
-                        <span class="value">{profile.website ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">MWST</span>
-                        <span class="value">{profile.mwst ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Bank</span>
-                        <span class="value">{profile.bankName ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Bank-Ort</span>
-                        <span class="value">{profile.bankLocation ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Kontonummer</span>
-                        <span class="value">{profile.bankAccount ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">IBAN</span>
-                        <span class="value">{profile.bankIban ?? "—"}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">SWIFT</span>
-                        <span class="value">{profile.bankSwift ?? "—"}</span>
-                    </div>
-                </div>
             </div>
         </details>
     </div>
@@ -179,19 +368,19 @@
             <div class="draft-list">
                 {#each data.drafts as draft}
                     <div class="draft-row">
-                        {#if nameEdit?.id === draft.id && nameEdit?.type === "draft"}
-                            <div class="draft-link">
-                                <div class="draft-name">
-                                    <button
-                                        type="button"
-                                        class="edit-icon-btn"
-                                        aria-label="Titel bearbeiten"
-                                        on:click|stopPropagation={() =>
-                                            startNameEdit(draft.id, "draft", draft.name)
-                                        }
-                                    >
-                                        <img src="/edit-icon.svg" alt="" aria-hidden="true" />
-                                    </button>
+                        <div class="draft-link">
+                            <div class="draft-name">
+                                <button
+                                    type="button"
+                                    class="edit-icon-btn"
+                                    aria-label="Titel bearbeiten"
+                                    on:click|stopPropagation={() =>
+                                        startNameEdit(draft.id, "draft", draft.name)
+                                    }
+                                >
+                                    <img src="/edit-icon.svg" alt="" aria-hidden="true" />
+                                </button>
+                                {#if nameEdit?.id === draft.id && nameEdit?.type === "draft"}
                                     <form class="rename-form" method="POST" action="?/renameDraft">
                                         <input type="hidden" name="draftId" value={draft.id} />
                                         <input
@@ -208,38 +397,22 @@
                                             <button type="submit" class="confirm-btn">Speichern</button>
                                         </div>
                                     </form>
-                                </div>
-                                <div class="draft-date">
-                                    {draft.updatedAt
-                                        ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
-                                        : ""}
-                                </div>
-                            </div>
-                        {:else}
-                            <a class="draft-link" href={`/builder?draft=${draft.id}`}>
-                                <div class="draft-name">
-                                    <button
-                                        type="button"
-                                        class="edit-icon-btn"
-                                        aria-label="Titel bearbeiten"
-                                        on:click|preventDefault|stopPropagation={() =>
-                                            startNameEdit(draft.id, "draft", draft.name)
-                                        }
-                                    >
-                                        <img src="/edit-icon.svg" alt="" aria-hidden="true" />
-                                    </button>
+                                {:else}
                                     <span>{draft.name ?? "Entwurf"}</span>
-                                </div>
-                                <div class="draft-date">
-                                    {draft.updatedAt
-                                        ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
-                                        : ""}
-                                </div>
-                            </a>
-                        {/if}
-                        <button class="delete-btn" type="button" on:click={() => confirmDelete(draft.id, "draft")}>
-                            Löschen
-                        </button>
+                                {/if}
+                            </div>
+                            <div class="draft-date">
+                                {draft.updatedAt
+                                    ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
+                                    : ""}
+                            </div>
+                        </div>
+                        <div class="draft-actions">
+                            <a class="ghost ghost-link" href={`/builder?draft=${draft.id}`}>Bearbeiten</a>
+                            <button class="delete-btn" type="button" on:click={() => confirmDelete(draft.id, "draft")}>
+                                Löschen
+                            </button>
+                        </div>
                     </div>
                 {/each}
             </div>
@@ -352,119 +525,6 @@
         </div>
     {/if}
 
-    {#if editing}
-        <div class="card form-card">
-            <div class="form-head">
-                <div>
-                    <h2 class="subhead">Firmendaten bearbeiten</h2>
-                    <p class="hint">
-                        Speichern Sie Ihre Firmendaten, damit Sie diese nicht jedes Mal ausfüllen müssen.
-                    </p>
-                </div>
-            </div>
-
-            <form class="stack" method="POST" action="?/save" enctype="multipart/form-data">
-                <div
-                    class="logo-dropzone"
-                    class:dragging={logoDrag}
-                    role="button"
-                    tabindex="0"
-                    aria-label="Firmenlogo hochladen"
-                    on:click={triggerLogoBrowse}
-                    on:keydown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            triggerLogoBrowse();
-                        }
-                    }}
-                    on:dragenter|preventDefault={handleLogoDragEnter}
-                    on:dragover|preventDefault={handleLogoDragOver}
-                    on:dragleave={handleLogoDragLeave}
-                    on:drop|preventDefault={handleLogoDrop}
-                >
-                    {#if logoPreview}
-                        <img class="logo-dropzone-preview" src={logoPreview} alt="Firmenlogo" />
-                        <p class="logo-dropzone-text">
-                            Logo ersetzen? Klicken oder neue Datei ablegen.
-                        </p>
-                    {:else}
-                        <div class="logo-dropzone-icon" aria-hidden="true">🗂️</div>
-                        <p class="logo-dropzone-text">
-                            Logo hierhin ziehen oder klicken, um PNG/JPG hochzuladen
-                        </p>
-                        <p class="logo-dropzone-subtext">Empfohlen: 160 × 60 px</p>
-                    {/if}
-                </div>
-                <input
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    name="logo"
-                    class="logo-file-input"
-                    bind:this={logoInput}
-                    on:change={handleLogoSelect}
-                />
-
-                <label>
-                    Adresse (Strasse)
-                    <input
-                        name="addressStreet"
-                        type="text"
-                        placeholder="Musterweg 10"
-                        value={profile.addressStreet ?? ""}
-                    />
-                </label>
-                <label>
-                    PLZ
-                    <input name="addressZip" type="text" placeholder="8000" value={profile.addressZip ?? ""} />
-                </label>
-                <label>
-                    Ort
-                    <input name="addressCity" type="text" placeholder="Zürich" value={profile.addressCity ?? ""} />
-                </label>
-                <label>
-                    Telefon
-                    <input name="phone" type="text" placeholder="+41 44 123 45 67" value={profile.phone ?? ""} />
-                </label>
-                <label>
-                    Website
-                    <input name="website" type="text" placeholder="offi.ch" value={profile.website ?? ""} />
-                </label>
-                <label>
-                    MWST-Nummer
-                    <input name="mwst" type="text" placeholder="CHE-123.456.789 MWST" value={profile.mwst ?? ""} />
-                </label>
-                <label>
-                    Bankname
-                    <input name="bankName" type="text" placeholder="Zürcher Kantonalbank" value={profile.bankName ?? ""} />
-                </label>
-                <label>
-                    Ort
-                    <input name="bankLocation" type="text" placeholder="Zürich" value={profile.bankLocation ?? ""} />
-                </label>
-                <label>
-                    Kontonummer
-                    <input name="bankAccount" type="text" placeholder="12-345678-0" value={profile.bankAccount ?? ""} />
-                </label>
-                <label>
-                    IBAN
-                    <input
-                        name="bankIban"
-                        type="text"
-                        placeholder="CH93 0076 2011 6238 5295 7"
-                        value={profile.bankIban ?? ""}
-                    />
-                </label>
-                <label>
-                    SWIFT-Code
-                    <input name="bankSwift" type="text" placeholder="ZKBKCHZZ80A" value={profile.bankSwift ?? ""} />
-                </label>
-
-                <div class="actions">
-                    <button type="submit">Speichern</button>
-                </div>
-            </form>
-        </div>
-    {/if}
 </section>
 
 <style>
@@ -631,6 +691,16 @@
         box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
     }
 
+    .ghost-link {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        line-height: 1;
+        padding: 0.45rem 0.8rem;
+    }
+
     .edit-icon-btn {
         display: inline-flex;
         align-items: center;
@@ -731,6 +801,11 @@
         border-color: #84c1ff;
         background: #eef5ff;
         box-shadow: 0 12px 28px rgba(1, 51, 100, 0.12);
+    }
+
+    .logo-dropzone.inline {
+        min-height: 120px;
+        margin-bottom: 0;
     }
 
     .logo-dropzone:focus-visible {
@@ -867,8 +942,53 @@
 
     .info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 0.75rem;
+        align-items: start;
+    }
+
+    .info-row {
+        padding: 0.85rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .info-row.wide {
+        grid-column: 1 / -1;
+    }
+
+    .logo-display {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .info-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-section {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-section .section-title {
+        margin: 0;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+        font-size: 1rem;
     }
 
     .logo-wrap {
@@ -888,13 +1008,6 @@
         object-fit: contain;
     }
 
-    .info-row {
-        padding: 0.85rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        background: #f8fafc;
-    }
-
     .label {
         color: #475569;
         font-weight: 600;
@@ -904,6 +1017,25 @@
         font-weight: 700;
         color: #0f172a;
         word-break: break-word;
+    }
+
+    .info-grid.editable input {
+        font: inherit;
+        padding: 0.6rem 0.75rem;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        transition: border-color 130ms ease, box-shadow 130ms ease, background 130ms ease;
+    }
+
+    .info-grid.editable input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-actions {
+        justify-content: flex-end;
     }
 
 
