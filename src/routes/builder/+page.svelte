@@ -202,8 +202,10 @@
     let discountPercent = "";
     let discountLabel = "";
 
-    const FIRST_PAGE_POSITION_ROWS = 10;
-    const FOLLOWUP_PAGE_POSITION_ROWS = 18;
+    // Keep position counts conservative so the layout stays within an A4 page
+    const FIRST_PAGE_POSITION_ROWS = 9;
+    const FOLLOWUP_PAGE_POSITION_ROWS = 16;
+    const LAST_PAGE_SAFETY_ROWS = 3;
     const TEMPLATE_STORAGE_KEY = "offertio-template";
 
     // Positionen mit Artikelnummer
@@ -933,16 +935,24 @@
     function chunkPositions(list) {
         if (!list.length) return [{ rows: [], startIndex: 0 }];
         const chunks = [];
-        const firstChunkSize = FIRST_PAGE_POSITION_ROWS;
-        const followChunkSize = FOLLOWUP_PAGE_POSITION_ROWS;
-        const firstRows = list.slice(0, firstChunkSize);
-        chunks.push({ rows: firstRows, startIndex: 0 });
-        let consumed = firstRows.length;
+        let consumed = 0;
+        let isFirstPage = true;
+
         while (consumed < list.length) {
-            const rows = list.slice(consumed, consumed + followChunkSize);
+            const baseSize = isFirstPage
+                ? FIRST_PAGE_POSITION_ROWS
+                : FOLLOWUP_PAGE_POSITION_ROWS;
+            const remaining = list.length - consumed;
+            const capacity =
+                remaining <= baseSize
+                    ? Math.max(1, baseSize - LAST_PAGE_SAFETY_ROWS)
+                    : baseSize;
+            const rows = list.slice(consumed, consumed + capacity);
             chunks.push({ rows, startIndex: consumed });
             consumed += rows.length;
+            isFirstPage = false;
         }
+
         return chunks;
     }
 
@@ -2573,16 +2583,15 @@
         left: auto;
         top: auto;
         transform: none;
-        margin: 0 auto 0.5rem;
+        margin: 0 auto;
         border: none;
         box-shadow: none;
-        page-break-after: always;
+        page-break-after: auto;
         --preview-scale: 1;
     }
 
-    #pdf-export .pdf-page:last-child {
-        page-break-after: auto;
-        margin-bottom: 0;
+    #pdf-export .pdf-page:not(:last-child) {
+        page-break-after: always;
     }
 
     .pdf-body {
@@ -2654,6 +2663,7 @@
     .pdf-page {
         width: var(--page-width, 210mm);
         min-height: var(--page-height, 296mm);
+        height: var(--page-height, 296mm);
         padding: 20mm 20mm 25mm 20mm;
         background: white;
         border: 1px solid #e5e7eb; /* nur für die Vorschau im Browser */
