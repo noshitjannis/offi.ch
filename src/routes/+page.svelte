@@ -728,15 +728,13 @@
   }
 
   .feature-card h3,
-  .audience-card h3,
-  .resource-card h3 {
+  .audience-card h3 {
     margin: 0;
     font-size: 1.2rem;
   }
 
   .feature-card p,
-  .audience-card p,
-  .resource-card p {
+  .audience-card p {
     margin: 0;
     color: #475569;
     line-height: 1.6;
@@ -1036,18 +1034,6 @@
     color: #e2e8f0;
   }
 
-  .cta-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-  }
-
-  .pricing-cta .btn.ghost {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #ffffff;
-  }
-
   .trust-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1173,9 +1159,6 @@
       justify-content: flex-start;
     }
 
-    .pricing-card {
-      grid-template-columns: 1fr;
-    }
   }
 
   @media (max-width: 720px) {
