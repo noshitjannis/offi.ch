@@ -1770,49 +1770,47 @@
                                 </p>
                                 <div class="intro-spacer"></div>
 
-                                <table class="offer-table">
-                                    <colgroup>
-                                        <col class="col-pos" />
-                                        <col class="col-art" />
-                                        <col class="col-desc" />
-                                        <col class="col-qty" />
-                                        <col class="col-price" />
-                                        <col class="col-total" />
-                                    </colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th class="col-pos right">Pos.</th>
-                                            <th class="col-art">Art.-Nr.</th>
-                                            <th class="col-desc">Bezeichnung</th>
-                                            <th class="col-qty right">Menge</th>
-                                            <th class="col-price right">Einzelpreis</th>
-                                            <th class="col-total right">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                <div class="offer-table" role="table" aria-label="Positionen">
+                                    <div class="offer-table__header" role="row">
+                                        <div class="cell right" role="columnheader">Pos.</div>
+                                        <div class="cell" role="columnheader">Art.-Nr.</div>
+                                        <div class="cell" role="columnheader">Bezeichnung</div>
+                                        <div class="cell right" role="columnheader">Menge</div>
+                                        <div class="cell right" role="columnheader">Einzelpreis</div>
+                                        <div class="cell right" role="columnheader">Total</div>
+                                    </div>
+                                    <div class="offer-table__body" role="rowgroup">
                                         {#if chunk.rows.length}
                                             {#each chunk.rows as position, rowIndex}
                                                 {@const qty = Number(position.quantity) || 0}
                                                 {@const unit = Number(position.unitPrice) || 0}
                                                 {@const rowTotal = qty * unit}
-                                                <tr>
-                                                    <td class="right">
+                                                <div class="offer-row" role="row">
+                                                    <div class="cell right" role="cell">
                                                         {getPositionNumber(pageIndex, rowIndex)}
-                                                    </td>
-                                                    <td>{position.articleNumber || "—"}</td>
-                                                    <td>{position.description || "Beschreibung folgt"}</td>
-                                                    <td class="right">{qty}</td>
-                                                    <td class="right">{formatCurrency(unit)}</td>
-                                                    <td class="right">{formatCurrency(rowTotal)}</td>
-                                                </tr>
+                                                    </div>
+                                                    <div class="cell" role="cell">
+                                                        {position.articleNumber || "—"}
+                                                    </div>
+                                                    <div class="cell" role="cell">
+                                                        {position.description || "Beschreibung folgt"}
+                                                    </div>
+                                                    <div class="cell right" role="cell">{qty}</div>
+                                                    <div class="cell right" role="cell">
+                                                        {formatCurrency(unit)}
+                                                    </div>
+                                                    <div class="cell right" role="cell">
+                                                        {formatCurrency(rowTotal)}
+                                                    </div>
+                                                </div>
                                             {/each}
                                         {:else}
-                                            <tr>
-                                                <td colspan="6">Keine Positionen erfasst.</td>
-                                            </tr>
+                                            <div class="offer-row empty" role="row">
+                                                <div class="cell" role="cell">Keine Positionen erfasst.</div>
+                                            </div>
                                         {/if}
-                                    </tbody>
-                                </table>
+                                    </div>
+                                </div>
 
         {#if pageIndex === totalPages - 1}
                                     <div class="totals">
@@ -1936,49 +1934,47 @@
                         </p>
                         <div class="intro-spacer"></div>
 
-                        <table class="offer-table">
-                            <colgroup>
-                                <col class="col-pos" />
-                                <col class="col-art" />
-                                <col class="col-desc" />
-                                <col class="col-qty" />
-                                <col class="col-price" />
-                                <col class="col-total" />
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th class="col-pos right">Pos.</th>
-                                    <th class="col-art">Art.-Nr.</th>
-                                    <th class="col-desc">Bezeichnung</th>
-                                    <th class="col-qty right">Menge</th>
-                                    <th class="col-price right">Einzelpreis</th>
-                                    <th class="col-total right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <div class="offer-table" role="table" aria-label="Positionen">
+                            <div class="offer-table__header" role="row">
+                                <div class="cell right" role="columnheader">Pos.</div>
+                                <div class="cell" role="columnheader">Art.-Nr.</div>
+                                <div class="cell" role="columnheader">Bezeichnung</div>
+                                <div class="cell right" role="columnheader">Menge</div>
+                                <div class="cell right" role="columnheader">Einzelpreis</div>
+                                <div class="cell right" role="columnheader">Total</div>
+                            </div>
+                            <div class="offer-table__body" role="rowgroup">
                                 {#if chunk.rows.length}
                                     {#each chunk.rows as position, rowIndex}
                                         {@const qty = Number(position.quantity) || 0}
                                         {@const unit = Number(position.unitPrice) || 0}
                                         {@const rowTotal = qty * unit}
-                                        <tr>
-                                            <td class="right">
+                                        <div class="offer-row" role="row">
+                                            <div class="cell right" role="cell">
                                                 {getPositionNumber(pageIndex, rowIndex)}
-                                            </td>
-                                            <td>{position.articleNumber || "—"}</td>
-                                            <td>{position.description || "Beschreibung folgt"}</td>
-                                            <td class="right">{qty}</td>
-                                            <td class="right">{formatCurrency(unit)}</td>
-                                            <td class="right">{formatCurrency(rowTotal)}</td>
-                                        </tr>
+                                            </div>
+                                            <div class="cell" role="cell">
+                                                {position.articleNumber || "—"}
+                                            </div>
+                                            <div class="cell" role="cell">
+                                                {position.description || "Beschreibung folgt"}
+                                            </div>
+                                            <div class="cell right" role="cell">{qty}</div>
+                                            <div class="cell right" role="cell">
+                                                {formatCurrency(unit)}
+                                            </div>
+                                            <div class="cell right" role="cell">
+                                                {formatCurrency(rowTotal)}
+                                            </div>
+                                        </div>
                                     {/each}
                                 {:else}
-                                    <tr>
-                                        <td colspan="6">Keine Positionen erfasst.</td>
-                                    </tr>
+                                    <div class="offer-row empty" role="row">
+                                        <div class="cell" role="cell">Keine Positionen erfasst.</div>
+                                    </div>
                                 {/if}
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
 
                         {#if pageIndex === totalPages - 1}
                             <div class="totals">
@@ -2802,90 +2798,113 @@
 
     .offer-table {
         width: 100%;
-        border-collapse: collapse;
         margin-bottom: 0.8rem;
         font-size: 0.9rem;
-        table-layout: fixed;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #fff;
+        font-variant-numeric: tabular-nums;
     }
 
-    .offer-table th,
-    .offer-table td {
+    .offer-table__header,
+    .offer-row {
+        display: grid;
+        grid-template-columns:
+            minmax(34px, 8%)
+            minmax(70px, 12%)
+            minmax(140px, 1fr)
+            minmax(60px, 12%)
+            minmax(100px, 15%)
+            minmax(100px, 15%);
+        column-gap: 0.4rem;
+        align-items: center;
+        padding: 0.4rem 0.5rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        position: relative;
+    }
+
+    .offer-table__header {
+        font-weight: 700;
+        border-bottom: 1.5px solid #dfe4ea;
+        background: #f4f7fb;
+        color: #0f172a;
+    }
+
+    .offer-table__body .offer-row {
         border-bottom: 1px solid #e5e7eb;
-        padding: 0.35rem 0.3rem;
+    }
+
+    .offer-table__body .offer-row:last-child {
+        border-bottom: none;
+    }
+
+    .offer-row.empty {
+        grid-template-columns: 1fr;
         text-align: left;
-        vertical-align: top;
+        color: #6b7280;
+    }
+
+    .offer-table .cell {
         white-space: normal;
         word-break: break-word;
+        line-height: 1.35;
+        padding-right: 0.2rem;
+        border-right: 1px solid #e5e7eb;
     }
 
-    .offer-table thead th {
-        border-bottom: 1.5px solid #9ca3af;
-        font-weight: 600;
-    }
-
-    .offer-table .right {
+    .offer-table .cell.right {
         text-align: right;
-    }
-
-    .offer-table col.col-pos {
-        width: 8%;
-    }
-
-    .offer-table col.col-art {
-        width: 12%;
-    }
-
-    .offer-table col.col-desc {
-        width: 40%;
-    }
-
-    .offer-table col.col-qty {
-        width: 10%;
-    }
-
-    .offer-table col.col-price,
-    .offer-table col.col-total {
-        width: 15%;
-    }
-
-    .offer-table th.col-qty,
-    .offer-table th.col-price,
-    .offer-table th.col-total,
-    .offer-table td:nth-child(4),
-    .offer-table td:nth-child(5),
-    .offer-table td:nth-child(6) {
         white-space: nowrap;
     }
 
-    .offer-table th.col-desc,
-    .offer-table td:nth-child(3) {
-        white-space: normal;
+    .offer-table .cell:last-child {
+        border-right: none;
     }
 
-    .offer-table tr {
-        break-inside: avoid;
-        page-break-inside: avoid;
+    /* left align the position column explicitly */
+    .offer-table__header .cell:first-child,
+    .offer-row .cell:first-child {
+        text-align: left;
+    }
+
+    /* emphasize total column */
+    .offer-table__header .cell:last-child {
+        font-weight: 700;
+    }
+
+    .offer-row .cell:last-child {
+        font-weight: 700;
     }
 
     .totals {
         margin-top: 0.5rem;
-        max-width: 260px;
+        max-width: 280px;
         margin-left: auto; /* rechtsbündig wie in Word */
         font-size: 0.9rem;
+        border-top: 2px solid #dfe4ea;
+        font-variant-numeric: tabular-nums;
     }
 
     .totals .row {
-        display: flex;
-        justify-content: space-between;
-        column-gap: 1.25rem;
-        margin-bottom: 0.2rem;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 0.75rem;
+        align-items: center;
+        padding: 0.3rem 0;
     }
 
-    .totals .total {
+    .totals .row span:last-child {
+        text-align: right;
         font-weight: 600;
-        margin-top: 0.3rem;
-        border-top: 1px solid #9ca3af;
-        padding-top: 0.3rem;
+    }
+
+    .totals .row.total {
+        font-weight: 700;
+        padding-top: 0.45rem;
+        margin-top: 0.15rem;
+        border-top: 1px solid #cbd5e1;
     }
 
     @media (max-width: 900px) {
