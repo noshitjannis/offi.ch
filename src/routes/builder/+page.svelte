@@ -2811,13 +2811,13 @@
     .offer-row {
         display: grid;
         grid-template-columns:
-            minmax(34px, 8%)
-            minmax(70px, 12%)
-            minmax(140px, 1fr)
-            minmax(60px, 12%)
-            minmax(100px, 15%)
-            minmax(100px, 15%);
-        column-gap: 0.4rem;
+            50px
+            110px
+            1fr
+            80px
+            120px
+            120px;
+        column-gap: 0.5rem;
         align-items: center;
         padding: 0.4rem 0.5rem;
         break-inside: avoid;
@@ -2830,6 +2830,7 @@
         border-bottom: 1.5px solid #dfe4ea;
         background: #f4f7fb;
         color: #0f172a;
+        align-items: end;
     }
 
     .offer-table__body .offer-row {
@@ -2852,6 +2853,16 @@
         line-height: 1.35;
         padding-right: 0.2rem;
         border-right: 1px solid #e5e7eb;
+    }
+
+    .offer-table__header .cell {
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+        display: flex;
+        align-items: flex-end;
+        align-self: end;
+        line-height: 1.1;
     }
 
     .offer-table .cell.right {
