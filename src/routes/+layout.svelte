@@ -7,7 +7,7 @@
   const navLinks = [
     { href: "/#funktionen", label: "Funktionen" },
     { href: "/#preise", label: "Preise" },
-    { href: "/#templates", label: "Templates" }
+    { href: "/#templates", label: "Vorlagen" }
   ];
   let menuOpen = false;
   let isCondensed = false;

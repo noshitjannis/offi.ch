@@ -263,7 +263,7 @@
   <section class="section templates" id="templates">
     <div class="container split">
       <div class="text" data-animate>
-        <p class="eyebrow">Templates & Datenübernahme</p>
+        <p class="eyebrow">Vorlagen & Datenübernahme</p>
         <h2>Vorlagen importieren oder als JSON sichern</h2>
         <p>
           Lade bestehende Offerten als JSON ein, um direkt weiterzuarbeiten, oder exportiere fertige Dokumente als Vorlage für dein Team. Der Gastmodus hilft dir, ohne Login zu testen.
