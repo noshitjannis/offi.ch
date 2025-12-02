@@ -16,81 +16,88 @@
 
 <div class="home">
   <section class="hero" id="top">
-    <div class="container hero-grid">
-      <div class="hero-copy" data-animate>
-        <p class="eyebrow">Das Cloud-basierte Offert-Tool für Schweizer KMU</p>
-        <h1>Das clevere Offert-Tool für weniger Administration und mehr Aufträge.</h1>
-        <p class="lede">
-          Offi führt dich Schritt für Schritt durch Firmen- und Kundendaten, Positionen, Rabatte,
-          MWST und Zahlungsinfos. Entwürfe speichern, fertige Offerten als PDF exportieren und bei Bedarf wieder öffnen – alles in einem klaren Workflow.
-        </p>
+    <div class="container">
+      <div class="hero-card">
+        <div class="hero-grid">
+          <div class="hero-copy" data-animate>
+            <p class="eyebrow">Offerten fertig in Minuten</p>
+            <h1>Kostenlos Offerten erstellen – mit Login noch schneller.</h1>
+            <p class="lede">
+              Offi führt dich durch Stammdaten, Kund:innen und Positionen bis zum fertigen PDF. Eingeloggt nutzt du gespeicherte Firmendaten, kopierst Offerten und sparst dir jede doppelte Eingabe.
+            </p>
 
-        <div class="hero-actions">
-          <a class="btn primary" href={primaryCta}>Jetzt kostenlos testen</a>
-          <a class="btn ghost" href={secondaryCta}>Ohne Login testen</a>
-        </div>
-        <p class="trust">Ohne Kreditkarte, in wenigen Minuten startklar.</p>
+            <div class="hero-actions">
+              <a class="btn primary" href={primaryCta}>Kostenlos Offerte erstellen</a>
+              <a class="btn ghost" href={secondaryCta}>Ohne Login testen</a>
+            </div>
+            <p class="trust">
+              {data?.user
+                ? "Du bist eingeloggt – Stammdaten sind vorausgefüllt, die nächste Offerte dauert nur Minuten."
+                : "Mit Login speicherst du Stammdaten und bist beim nächsten Mal in Minuten fertig. Keine Kreditkarte nötig."}
+            </p>
 
-        <div class="hero-highlights">
-          <span>PDF-Export mit Logo</span>
-          <span>Entwürfe & fertige Offerten</span>
-          <span>MWST & Rabatte inklusive</span>
-        </div>
-      </div>
-
-      <div class="hero-visual" data-animate>
-        <div class="mockup">
-          <div class="mockup-top">
-            <span class="pill pill-blue">Offerte</span>
-            <span class="pill pill-soft">Entwurf gespeichert</span>
+            <div class="hero-highlights">
+              <span>Stammdaten vorausgefüllt</span>
+              <span>Offerten kopieren & speichern</span>
+              <span>PDF-Export mit Logo</span>
+            </div>
           </div>
 
-          <div class="mockup-body">
-            <div class="mockup-section">
-              <p class="section-label">Firmendaten</p>
-              <div class="lines">
-                <span class="line wide"></span>
-                <span class="line"></span>
+          <div class="hero-visual" data-animate>
+            <div class="mockup">
+              <div class="mockup-top">
+                <span class="pill pill-blue">{data?.user ? "Deine Offerte" : "Offerte"}</span>
+                <span class="pill pill-soft">Entwurf gespeichert</span>
               </div>
-            </div>
 
-            <div class="mockup-section">
-              <p class="section-label">Kund:in & Kontakt</p>
-              <div class="lines">
-                <span class="line wide"></span>
-                <span class="line"></span>
-              </div>
-            </div>
+              <div class="mockup-body">
+                <div class="mockup-section">
+                  <p class="section-label">Firmendaten</p>
+                  <div class="lines">
+                    <span class="line wide"></span>
+                    <span class="line"></span>
+                  </div>
+                </div>
 
-            <div class="mockup-section table">
-              <div class="table-head">
-                <span>Pos.</span>
-                <span>Beschreibung</span>
-                <span class="right">Menge</span>
-                <span class="right">Preis</span>
-              </div>
-              <div class="table-row">
-                <span class="pill small">01</span>
-                <span>Website-Konzept & Design</span>
-                <span class="right">1</span>
-                <span class="right">CHF 4'200.00</span>
-              </div>
-              <div class="table-row">
-                <span class="pill small alt">02</span>
-                <span>Implementierung & Testing</span>
-                <span class="right">1</span>
-                <span class="right">CHF 2'340.00</span>
-              </div>
-            </div>
+                <div class="mockup-section">
+                  <p class="section-label">Kund:in & Kontakt</p>
+                  <div class="lines">
+                    <span class="line wide"></span>
+                    <span class="line"></span>
+                  </div>
+                </div>
 
-            <div class="mockup-footer">
-              <div class="footer-labels">
-                <span class="pill ghost-pill">Rabatt & MWST berechnet</span>
-                <span class="pill ghost-pill">PDF bereit</span>
-              </div>
-              <div class="total">
-                <p>Gesamttotal</p>
-                <strong>CHF 6'540.00</strong>
+                <div class="mockup-section table">
+                  <div class="table-head">
+                    <span>Pos.</span>
+                    <span>Beschreibung</span>
+                    <span class="right">Menge</span>
+                    <span class="right">Preis</span>
+                  </div>
+                  <div class="table-row">
+                    <span class="pill small">01</span>
+                    <span>Website-Konzept & Design</span>
+                    <span class="right">1</span>
+                    <span class="right">CHF 4'200.00</span>
+                  </div>
+                  <div class="table-row">
+                    <span class="pill small alt">02</span>
+                    <span>Implementierung & Testing</span>
+                    <span class="right">1</span>
+                    <span class="right">CHF 2'340.00</span>
+                  </div>
+                </div>
+
+                <div class="mockup-footer">
+                  <div class="footer-labels">
+                    <span class="pill ghost-pill">Rabatt & MWST berechnet</span>
+                    <span class="pill ghost-pill">PDF bereit</span>
+                  </div>
+                  <div class="total">
+                    <p>Gesamttotal</p>
+                    <strong>CHF 6'540.00</strong>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -394,24 +401,36 @@
 
   .hero {
     position: relative;
-    padding: 1.5rem 0 3rem;
+    padding: 2.25rem 0 3.5rem;
     overflow: hidden;
   }
 
-  .hero::before {
+  .hero-card {
+    position: relative;
+    z-index: 1;
+    border-radius: 22px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 48px rgba(13, 38, 76, 0.12);
+    padding: clamp(1.4rem, 2vw, 2rem);
+    overflow: hidden;
+  }
+
+  .hero-card::after {
     content: "";
     position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 20% 20%, #e9f1ff, #f5f7fb 50%);
-    z-index: 0;
+    top: -40%;
+    right: -20%;
+    width: 45%;
+    height: 120%;
+    background: radial-gradient(circle at 50% 50%, rgba(99, 157, 255, 0.12), transparent 60%);
+    pointer-events: none;
   }
 
   .hero-grid {
-    position: relative;
-    z-index: 1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2.5rem;
+    gap: 2rem;
     align-items: center;
   }
 
@@ -432,7 +451,7 @@
     gap: 0.85rem;
     flex-wrap: wrap;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.35rem;
   }
 
   .btn {
@@ -472,26 +491,26 @@
   }
 
   .trust {
-    margin: 0.4rem 0 0.75rem;
+    margin: 0.4rem 0 0.6rem;
     color: #475569;
   }
 
   .hero-highlights {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 0.5rem;
     color: #0f172a;
+    margin-top: 0.5rem;
   }
 
   .hero-highlights span {
     display: inline-flex;
     align-items: center;
-    padding: 0.5rem 0.75rem;
-    background: #ffffff;
+    padding: 0.55rem 0.75rem;
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 999px;
-    font-weight: 600;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    font-weight: 700;
   }
 
   .hero-visual {
@@ -504,7 +523,7 @@
     background: #ffffff;
     border-radius: 18px;
     border: 1px solid #e1e8f5;
-    box-shadow: 0 18px 44px rgba(13, 38, 76, 0.16);
+    box-shadow: 0 14px 32px rgba(13, 38, 76, 0.12);
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
@@ -1159,6 +1178,9 @@
       justify-content: flex-start;
     }
 
+    .hero-card {
+      padding: 1.25rem;
+    }
   }
 
   @media (max-width: 720px) {
