@@ -20,26 +20,27 @@
       <div class="hero-card">
         <div class="hero-grid">
           <div class="hero-copy" data-animate>
-            <p class="eyebrow">Offerten fertig in Minuten</p>
-            <h1>Kostenlos Offerten erstellen – mit Login noch schneller.</h1>
-            <p class="lede">
-              Offi führt dich durch Stammdaten, Kund:innen und Positionen bis zum fertigen PDF. Eingeloggt nutzt du gespeicherte Firmendaten, kopierst Offerten und sparst dir jede doppelte Eingabe.
-            </p>
-
-            <div class="hero-actions">
-              <a class="btn primary" href={primaryCta}>Kostenlos Offerte erstellen</a>
-              <a class="btn ghost" href={secondaryCta}>Ohne Login testen</a>
+            <div class="hero-top">
+              <p class="eyebrow">Offerten fertig in Minuten</p>
+              <h1>Kostenlos Offerten erstellen – mit Login noch schneller.</h1>
+              <p class="lede">
+                Offi führt dich durch Stammdaten, Kund:innen und Positionen bis zum fertigen PDF. Eingeloggt nutzt du gespeicherte Firmendaten, kopierst Offerten und sparst dir jede doppelte Eingabe.
+              </p>
             </div>
-            <p class="trust">
-              {data?.user
-                ? "Du bist eingeloggt – Stammdaten sind vorausgefüllt, die nächste Offerte dauert nur Minuten."
-                : "Mit Login speicherst du Stammdaten und bist beim nächsten Mal in Minuten fertig. Keine Kreditkarte nötig."}
-            </p>
 
-            <div class="hero-highlights">
-              <span>Stammdaten vorausgefüllt</span>
-              <span>Offerten kopieren & speichern</span>
-              <span>PDF-Export mit Logo</span>
+            <div class="hero-cta-block">
+              <div class="hero-actions">
+                <a class="btn primary" href={primaryCta}>Kostenlos Offerte erstellen</a>
+                <a class="btn ghost" href={secondaryCta}>Ohne Login testen</a>
+              </div>
+
+              <p class="trust">
+                {#if data?.user}
+                  Du bist eingeloggt – Stammdaten sind vorausgefüllt, die nächste Offerte dauert nur Minuten.
+                {:else}
+                  <span class="trust-small">Mit Login speicherst du Stammdaten und bist beim nächsten Mal in Minuten fertig. Keine Kreditkarte nötig.</span>
+                {/if}
+              </p>
             </div>
           </div>
 
@@ -402,7 +403,6 @@
   .hero {
     position: relative;
     padding: 2.25rem 0 3.5rem;
-    overflow: hidden;
   }
 
   .hero-card {
@@ -431,7 +431,25 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2rem;
-    align-items: center;
+    align-items: stretch;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
+  }
+
+  .hero-top {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .hero-cta-block {
+    margin-top: auto;
+    display: grid;
+    gap: 0.5rem;
   }
 
   .hero-copy h1 {
@@ -451,7 +469,7 @@
     gap: 0.85rem;
     flex-wrap: wrap;
     align-items: center;
-    margin: 0 0 0.35rem;
+    margin: 0;
   }
 
   .btn {
@@ -495,22 +513,8 @@
     color: #475569;
   }
 
-  .hero-highlights {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.5rem;
-    color: #0f172a;
-    margin-top: 0.5rem;
-  }
-
-  .hero-highlights span {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.55rem 0.75rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    font-weight: 700;
+  .trust-small {
+    font-size: 0.9rem;
   }
 
   .hero-visual {
