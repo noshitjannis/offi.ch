@@ -14,6 +14,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: "INVALID" }, { status: 400 });
 	}
 
+	const draftId = typeof body.id === "string" ? body.id : null;
 	const name =
 		typeof body.name === "string" && body.name.trim().length > 0
 			? body.name.trim()
@@ -21,18 +22,36 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const offerNumber = typeof body.offerNumber === "string" ? body.offerNumber : "";
 
 	const db = await getDb();
-	const id = generateIdFromEntropySize(12);
 	const now = new Date();
+	const id = draftId || generateIdFromEntropySize(12);
 
-	await db.collection("offers").insertOne(
+	if (draftId) {
+		await db.collection("drafts").deleteOne({
+			_id: draftId,
+			userId: locals.user.id
+		} as Record<string, unknown>);
+	}
+
+	const existingOffer = await db.collection("offers").findOne({
+		_id: id,
+		userId: locals.user.id
+	} as Record<string, unknown>);
+
+	await db.collection("offers").updateOne(
 		{
 			_id: id,
-			userId: locals.user.id,
-			name,
-			offerNumber,
-			data,
-			createdAt: now
-		} as any
+			userId: locals.user.id
+		},
+		{
+			$set: {
+				userId: locals.user.id,
+				name,
+				offerNumber,
+				data
+			},
+			$setOnInsert: { createdAt: existingOffer?.createdAt ?? now }
+		},
+		{ upsert: true }
 	);
 
 	return json({ ok: true, id, name });

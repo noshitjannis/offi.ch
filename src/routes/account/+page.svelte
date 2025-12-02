@@ -9,6 +9,22 @@
     let logoPreview: string | null = profile.logoData ?? null;
     let logoInput: HTMLInputElement | null = null;
     let confirmItem: { id: string; type: "draft" | "offer" } | null = null;
+    let reopenOfferId: string | null = null;
+    let nameEdit:
+        | {
+              id: string;
+              type: "draft" | "offer";
+              value: string;
+          }
+        | null = null;
+
+    const startNameEdit = (id: string, type: "draft" | "offer", currentName: string | undefined | null) => {
+        nameEdit = {
+            id,
+            type,
+            value: currentName?.trim() || ""
+        };
+    };
 
     const setFilesOnInput = (file: File) => {
         if (!logoInput) return;
@@ -62,7 +78,11 @@
         title="Willkommen zurück"
         description="Ergänzen Sie Ihre Firmendaten, damit Sie diese nicht jedes Mal ausfüllen müssen."
         flat
-    />
+    >
+        <form method="POST" action="?/logout" class="logout-hero">
+            <button type="submit" class="ghost danger">Abmelden</button>
+        </form>
+    </HeroBox>
 
     <div class="card">
         <details class="accordion">
@@ -84,9 +104,6 @@
                     <button class="ghost" type="button" on:click={() => (editing = !editing)}>
                         {editing ? "Abbrechen" : "Bearbeiten"}
                     </button>
-                    <form method="POST" action="?/logout" class="logout-inline">
-                        <button type="submit" class="ghost danger">Abmelden</button>
-                    </form>
                 </div>
 
                 {#if profile.logoData}
@@ -162,14 +179,64 @@
             <div class="draft-list">
                 {#each data.drafts as draft}
                     <div class="draft-row">
-                        <a class="draft-link" href={`/builder?draft=${draft.id}`}>
-                            <div class="draft-name">{draft.name ?? "Entwurf"}</div>
-                            <div class="draft-date">
-                                {draft.updatedAt
-                                    ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
-                                    : ""}
+                        {#if nameEdit?.id === draft.id && nameEdit?.type === "draft"}
+                            <div class="draft-link">
+                                <div class="draft-name">
+                                    <button
+                                        type="button"
+                                        class="edit-icon-btn"
+                                        aria-label="Titel bearbeiten"
+                                        on:click|stopPropagation={() =>
+                                            startNameEdit(draft.id, "draft", draft.name)
+                                        }
+                                    >
+                                        <img src="/edit-icon.svg" alt="" aria-hidden="true" />
+                                    </button>
+                                    <form class="rename-form" method="POST" action="?/renameDraft">
+                                        <input type="hidden" name="draftId" value={draft.id} />
+                                        <input
+                                            name="name"
+                                            type="text"
+                                            bind:value={nameEdit.value}
+                                            placeholder="Neuer Titel"
+                                            autofocus
+                                        />
+                                        <div class="rename-actions">
+                                            <button class="ghost" type="button" on:click={() => (nameEdit = null)}>
+                                                Abbrechen
+                                            </button>
+                                            <button type="submit" class="confirm-btn">Speichern</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="draft-date">
+                                    {draft.updatedAt
+                                        ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
+                                        : ""}
+                                </div>
                             </div>
-                        </a>
+                        {:else}
+                            <a class="draft-link" href={`/builder?draft=${draft.id}`}>
+                                <div class="draft-name">
+                                    <button
+                                        type="button"
+                                        class="edit-icon-btn"
+                                        aria-label="Titel bearbeiten"
+                                        on:click|preventDefault|stopPropagation={() =>
+                                            startNameEdit(draft.id, "draft", draft.name)
+                                        }
+                                    >
+                                        <img src="/edit-icon.svg" alt="" aria-hidden="true" />
+                                    </button>
+                                    <span>{draft.name ?? "Entwurf"}</span>
+                                </div>
+                                <div class="draft-date">
+                                    {draft.updatedAt
+                                        ? new Date(draft.updatedAt).toLocaleDateString("de-CH")
+                                        : ""}
+                                </div>
+                            </a>
+                        {/if}
                         <button class="delete-btn" type="button" on:click={() => confirmDelete(draft.id, "draft")}>
                             Löschen
                         </button>
@@ -215,26 +282,72 @@
                 {#each data.offers as offer}
                     <div class="draft-row">
                         <div class="draft-link">
-                            <div class="draft-name">{offer.name ?? "Offerte"}</div>
+                            <div class="draft-name">
+                                <button
+                                    type="button"
+                                    class="edit-icon-btn"
+                                    aria-label="Titel bearbeiten"
+                                    on:click|stopPropagation={() =>
+                                        startNameEdit(offer.id, "offer", offer.name)
+                                    }
+                                >
+                                    <img src="/edit-icon.svg" alt="" aria-hidden="true" />
+                                </button>
+                                {#if nameEdit?.id === offer.id && nameEdit?.type === "offer"}
+                                    <form class="rename-form" method="POST" action="?/renameOffer">
+                                        <input type="hidden" name="offerId" value={offer.id} />
+                                        <input
+                                            name="name"
+                                            type="text"
+                                            bind:value={nameEdit.value}
+                                            placeholder="Neuer Titel"
+                                            autofocus
+                                        />
+                                        <div class="rename-actions">
+                                            <button class="ghost" type="button" on:click={() => (nameEdit = null)}>
+                                                Abbrechen
+                                            </button>
+                                            <button type="submit" class="confirm-btn">Speichern</button>
+                                        </div>
+                                    </form>
+                                {:else}
+                                    <span>{offer.name ?? "Offerte"}</span>
+                                {/if}
+                            </div>
                             <div class="draft-date">
                                 {offer.createdAt
                                     ? new Date(offer.createdAt).toLocaleDateString("de-CH")
                                     : ""}
                             </div>
                         </div>
-                        <div class="draft-meta">
-                            <span class="label">Offerte-Nr.</span>
-                            <span class="value">{offer.offerNumber ?? "—"}</span>
-                        </div>
                         <div class="draft-actions">
-                            <a class="ghost" href={`/builder?draft=${offer.id}`}>Bearbeiten</a>
-                            <a class="ghost" href={`/builder?draft=${offer.id}`}>Anschauen</a>
+                            <button class="ghost" type="button" on:click={() => (reopenOfferId = offer.id)}>
+                                Bearbeiten
+                            </button>
                             <button class="delete-btn" type="button" on:click={() => confirmDelete(offer.id, "offer")}>
                                 Löschen
                             </button>
                         </div>
                     </div>
                 {/each}
+            </div>
+        </div>
+    {/if}
+
+    {#if reopenOfferId}
+        <div class="modal-backdrop">
+            <div class="modal">
+                <p>
+                    Wenn du das fertige Dokument bearbeitest, erstellen wir eine Kopie als Entwurf.
+                    Dein finales Dokument bleibt bei den fertigen Dokumenten enthalten.
+                </p>
+                <div class="modal-actions">
+                    <button type="button" class="ghost" on:click={() => (reopenOfferId = null)}>Abbrechen</button>
+                    <form method="POST" action="?/reopenOffer">
+                        <input type="hidden" name="offerId" value={reopenOfferId} />
+                        <button type="submit" class="confirm-btn">Weiter</button>
+                    </form>
+                </div>
             </div>
         </div>
     {/if}
@@ -430,6 +543,9 @@
     .draft-name {
         font-weight: 700;
         color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .draft-date {
@@ -515,6 +631,52 @@
         box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
     }
 
+    .edit-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        background: #e2e8f0;
+        border-radius: 8px;
+        padding: 0.15rem 0.25rem;
+        cursor: pointer;
+        transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    .edit-icon-btn img {
+        width: 18px;
+        height: 18px;
+        display: block;
+    }
+
+    .edit-icon-btn:hover {
+        background: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .rename-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        flex: 1;
+    }
+
+    .rename-form input[type="text"] {
+        font: inherit;
+        padding: 0.5rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background: #fff;
+    }
+
+    .rename-actions {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
     .danger-btn {
         border: 1px solid #fecdd3;
         background: #be123c;
@@ -530,6 +692,23 @@
         transform: translateY(-1px);
         box-shadow: 0 8px 18px rgba(190, 18, 60, 0.2);
         background: #9f1239;
+    }
+
+    .confirm-btn {
+        border: 1px solid #bbf7d0;
+        background: #16a34a;
+        color: #fff;
+        font-weight: 700;
+        padding: 0.55rem 0.9rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    .confirm-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(22, 163, 74, 0.2);
+        background: #15803d;
     }
 
     .logo-dropzone {
@@ -651,6 +830,12 @@
         justify-content: flex-end;
         align-items: center;
         margin-bottom: 0.5rem;
+    }
+
+    .logout-hero {
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: center;
     }
 
     .ghost {

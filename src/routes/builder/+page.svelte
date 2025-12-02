@@ -165,7 +165,8 @@
     let savingDraft = false;
     let saveMessage = "";
     let showSaveBlocker = false;
-    let draftId = data?.draft?.id ?? null;
+    const draftSource = data?.draft?.source ?? "draft";
+    let draftId = draftSource === "draft" ? data?.draft?.id ?? null : null;
     let draftName = data?.draft?.name ?? "";
     let appliedDraft = false;
 
@@ -723,6 +724,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    id: draftId ?? undefined,
                     name: resolvedCompanyName,
                     offerNumber: resolvedOfferNumber,
                     data: buildDraftPayload()

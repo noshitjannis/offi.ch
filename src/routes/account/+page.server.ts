@@ -2,6 +2,7 @@ import type { Actions, PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import { auth } from "$lib/server/auth";
 import { getDb } from "$lib/server/mongo";
+import { generateIdFromEntropySize } from "lucia";
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -66,6 +67,108 @@ export const actions: Actions = {
 			_id: draftId,
 			userId: locals.user.id
 		} as Record<string, unknown>);
+
+		throw redirect(302, "/account");
+	},
+	deleteOffer: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(302, "/login/basic");
+		}
+
+		const formData = await request.formData();
+		const offerId = formData.get("offerId");
+		if (!offerId || typeof offerId !== "string") {
+			throw redirect(302, "/account");
+		}
+
+		const db = await getDb();
+		await db.collection("offers").deleteOne({
+			_id: offerId,
+			userId: locals.user.id
+		} as Record<string, unknown>);
+
+		throw redirect(302, "/account");
+	},
+	reopenOffer: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(302, "/login/basic");
+		}
+
+		const formData = await request.formData();
+		const offerId = formData.get("offerId");
+		if (!offerId || typeof offerId !== "string") {
+			throw redirect(302, "/account");
+		}
+
+		const db = await getDb();
+		const offer = await db.collection("offers").findOne({
+			_id: offerId,
+			userId: locals.user.id
+		} as Record<string, unknown>);
+
+		if (!offer) {
+			throw redirect(302, "/account");
+		}
+
+		const now = new Date();
+		const newDraftId = generateIdFromEntropySize(12);
+
+		await db.collection("drafts").insertOne({
+			_id: newDraftId,
+			userId: locals.user.id,
+			name: (offer as any).name ?? "",
+			data: (offer as any).data,
+			createdAt: now,
+			updatedAt: now
+		} as any);
+
+		throw redirect(302, `/builder?draft=${newDraftId}`);
+	},
+	renameDraft: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(302, "/login/basic");
+		}
+
+		const formData = await request.formData();
+		const draftId = formData.get("draftId");
+		const name = (formData.get("name") || "").toString().trim();
+
+		if (!draftId || typeof draftId !== "string" || !name) {
+			throw redirect(302, "/account");
+		}
+
+		const db = await getDb();
+		await db.collection("drafts").updateOne(
+			{
+				_id: draftId,
+				userId: locals.user.id
+			},
+			{ $set: { name, updatedAt: new Date() } }
+		);
+
+		throw redirect(302, "/account");
+	},
+	renameOffer: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(302, "/login/basic");
+		}
+
+		const formData = await request.formData();
+		const offerId = formData.get("offerId");
+		const name = (formData.get("name") || "").toString().trim();
+
+		if (!offerId || typeof offerId !== "string" || !name) {
+			throw redirect(302, "/account");
+		}
+
+		const db = await getDb();
+		await db.collection("offers").updateOne(
+			{
+				_id: offerId,
+				userId: locals.user.id
+			},
+			{ $set: { name } }
+		);
 
 		throw redirect(302, "/account");
 	},

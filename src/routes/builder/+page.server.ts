@@ -14,6 +14,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		profile = (user as any)?.company ?? null;
 
 		const draftId = url.searchParams.get("draft");
+		const offerId = url.searchParams.get("offer") || draftId;
+
 		if (draftId) {
 			const found = await db.collection("drafts").findOne({
 				_id: draftId,
@@ -23,7 +25,23 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				draft = {
 					id: found._id,
 					name: found.name,
-					data: found.data
+					data: found.data,
+					source: "draft" as const
+				};
+			}
+		}
+
+		if (!draft && offerId) {
+			const foundOffer = await db.collection("offers").findOne({
+				_id: offerId,
+				userId: locals.user.id
+			} as Record<string, unknown>);
+			if (foundOffer) {
+				draft = {
+					id: foundOffer._id,
+					name: foundOffer.name,
+					data: (foundOffer as any).data,
+					source: "offer" as const
 				};
 			}
 		}
