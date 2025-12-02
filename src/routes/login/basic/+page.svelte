@@ -12,7 +12,7 @@
 <section class="page">
     <HeroBox
         eyebrow="Anmelden"
-        title="Offertino Login"
+        title="Offi Login"
         description="Melden Sie sich mit Ihrer E-Mail an, um Offerten zu speichern und jederzeit wieder aufzurufen."
         flat
     />
