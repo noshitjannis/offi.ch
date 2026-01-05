@@ -1196,11 +1196,6 @@
       padding-top: 1rem;
     }
 
-    .hero-highlights span {
-      width: 100%;
-      justify-content: center;
-    }
-
     .mockup {
       padding: 1rem;
     }

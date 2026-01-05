@@ -100,18 +100,21 @@
             </summary>
 
             <div class="accordion-body">
-                <div class="inline-actions">
+                <div class="panel-actions">
                     <button class="ghost" type="button" on:click={() => (editing = !editing)}>
                         {editing ? "Abbrechen" : "Bearbeiten"}
                     </button>
                 </div>
 
                 {#if editing}
-                    <form class="info-sections editable" method="POST" action="?/save" enctype="multipart/form-data">
-                        <div class="info-section">
-                            <p class="section-title">Kontakt & Adresse</p>
-                            <div class="info-grid">
-                                <div class="info-row wide">
+                    <form class="profile-form" method="POST" action="?/save" enctype="multipart/form-data">
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <p class="section-title">Kontakt & Adresse</p>
+                                <p class="section-note">Firmendaten einmalig pflegen und später wiederverwenden.</p>
+                            </div>
+                            <div class="field-grid edit-grid">
+                                <div class="field-item full logo-row">
                                     <span class="label">Logo</span>
                                     <div
                                         class="logo-dropzone inline"
@@ -153,15 +156,15 @@
                                     />
                                 </div>
 
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="email">E-Mail</label>
                                     <input id="email" name="email" type="text" value={data.user.email} readonly />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="name">Firmenname</label>
                                     <input id="name" name="name" type="text" value={data.user.name ?? ""} />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="addressStreet">Adresse</label>
                                     <input
                                         id="addressStreet"
@@ -171,7 +174,7 @@
                                         value={profile.addressStreet ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="addressZip">PLZ</label>
                                     <input
                                         id="addressZip"
@@ -181,7 +184,7 @@
                                         value={profile.addressZip ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="addressCity">Ort</label>
                                     <input
                                         id="addressCity"
@@ -191,7 +194,7 @@
                                         value={profile.addressCity ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="phone">Telefon</label>
                                     <input
                                         id="phone"
@@ -201,11 +204,17 @@
                                         value={profile.phone ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="website">Website</label>
-                                    <input id="website" name="website" type="text" placeholder="offi.ch" value={profile.website ?? ""} />
+                                    <input
+                                        id="website"
+                                        name="website"
+                                        type="text"
+                                        placeholder="offi.ch"
+                                        value={profile.website ?? ""}
+                                    />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="mwst">MWST</label>
                                     <input
                                         id="mwst"
@@ -218,10 +227,13 @@
                             </div>
                         </div>
 
-                        <div class="info-section">
-                            <p class="section-title">Bankverbindung</p>
-                            <div class="info-grid">
-                                <div class="info-row">
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <p class="section-title">Bankverbindung</p>
+                                <p class="section-note">Wird automatisch in deine Offerten übernommen.</p>
+                            </div>
+                            <div class="field-grid edit-grid">
+                                <div class="field-item">
                                     <label class="label" for="bankName">Bank</label>
                                     <input
                                         id="bankName"
@@ -231,7 +243,7 @@
                                         value={profile.bankName ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="bankLocation">Bank-Ort</label>
                                     <input
                                         id="bankLocation"
@@ -241,7 +253,7 @@
                                         value={profile.bankLocation ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="bankAccount">Kontonummer</label>
                                     <input
                                         id="bankAccount"
@@ -251,7 +263,7 @@
                                         value={profile.bankAccount ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="bankIban">IBAN</label>
                                     <input
                                         id="bankIban"
@@ -261,7 +273,7 @@
                                         value={profile.bankIban ?? ""}
                                     />
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <label class="label" for="bankSwift">SWIFT</label>
                                     <input
                                         id="bankSwift"
@@ -279,73 +291,77 @@
                         </div>
                     </form>
                 {:else}
-                    <div class="info-sections">
-                        <div class="info-section">
-                            <p class="section-title">Kontakt & Adresse</p>
-                            <div class="info-grid">
+                    <div class="profile-read">
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <p class="section-title">Kontakt & Adresse</p>
+                            </div>
+                            <div class="field-grid read-grid">
                                 {#if profile.logoData}
-                                    <div class="info-row wide logo-display">
+                                    <div class="field-item full logo-row">
                                         <span class="label">Logo</span>
                                         <div class="logo-wrap">
                                             <img src={profile.logoData} alt="Firmenlogo" />
                                         </div>
                                     </div>
                                 {/if}
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">E-Mail</span>
                                     <span class="value">{data.user.email}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Firmenname</span>
                                     <span class="value">{data.user.name ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Adresse</span>
                                     <span class="value">{profile.addressStreet ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">PLZ</span>
                                     <span class="value">{profile.addressZip ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Ort</span>
                                     <span class="value">{profile.addressCity ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Telefon</span>
                                     <span class="value">{profile.phone ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Website</span>
                                     <span class="value">{profile.website ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">MWST</span>
                                     <span class="value">{profile.mwst ?? "—"}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="info-section">
-                            <p class="section-title">Bankverbindung</p>
-                            <div class="info-grid">
-                                <div class="info-row">
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <p class="section-title">Bankverbindung</p>
+                            </div>
+                            <div class="field-grid read-grid">
+                                <div class="field-item">
                                     <span class="label">Bank</span>
                                     <span class="value">{profile.bankName ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Bank-Ort</span>
                                     <span class="value">{profile.bankLocation ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">Kontonummer</span>
                                     <span class="value">{profile.bankAccount ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">IBAN</span>
                                     <span class="value">{profile.bankIban ?? "—"}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="field-item">
                                     <span class="label">SWIFT</span>
                                     <span class="value">{profile.bankSwift ?? "—"}</span>
                                 </div>
@@ -775,18 +791,18 @@
     }
 
     .logo-dropzone {
-        border: 2px dashed #c7d1e0;
+        border: 1px dashed #cbd5e1;
         border-radius: 0.8rem;
-        padding: 1.4rem;
+        padding: 1.1rem;
         text-align: center;
-        background: #f8fbff;
+        background: #f9fbff;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-        margin-bottom: 0.9rem;
+        margin-bottom: 0;
         outline: none;
     }
 
@@ -886,12 +902,10 @@
         transform: rotate(180deg);
     }
 
-    .inline-actions {
+    .panel-actions {
         display: flex;
-        gap: 0.5rem;
         justify-content: flex-end;
-        align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 
     .logout-hero {
@@ -927,55 +941,66 @@
         background: #ffe4e6;
     }
 
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 0.75rem;
-        align-items: start;
-    }
-
-    .info-row {
-        padding: 0.85rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        background: #f8fafc;
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-    }
-
-    .info-row.wide {
-        grid-column: 1 / -1;
-    }
-
-    .logo-display {
-        flex-direction: row;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .info-sections {
+    .profile-form,
+    .profile-read {
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
 
-    .info-section {
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1rem;
-        background: #f8fafc;
+    .profile-section {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 0.75rem;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
     }
 
-    .info-section .section-title {
+    .profile-section:first-of-type {
+        border-top: none;
+        padding-top: 0;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        justify-content: space-between;
+    }
+
+    .section-title {
         margin: 0;
         font-weight: 800;
         color: #0f172a;
         letter-spacing: -0.01em;
         font-size: 1rem;
+    }
+
+    .section-note {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .field-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.85rem 1rem;
+    }
+
+    .field-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 0.1rem 0;
+    }
+
+    .field-item.full {
+        grid-column: 1 / -1;
+    }
+
+    .logo-row {
+        gap: 0.6rem;
     }
 
     .logo-wrap {

@@ -83,7 +83,9 @@
         </nav>
 
         <div class="header-cta">
-          <a class="login-link" href="/login/basic" on:click={() => (menuOpen = false)}>Login</a>
+          {#if !data.user}
+            <a class="login-link" href="/login/basic" on:click={() => (menuOpen = false)}>Login</a>
+          {/if}
           {#if data.user}
             <a class="login-link" href="/account" on:click={() => (menuOpen = false)}>Account</a>
           {/if}

@@ -158,7 +158,17 @@
             description="Laden Sie eine JSON-Datei einer ausgefüllten Offerte hoch."
             href={null}
             buttonText={null}
+            iconSize={70}
+            iconFrame={false}
         >
+            <img
+                slot="icon"
+                src="/offi-icon_vorlagen.png"
+                alt=""
+                class="template-icon"
+                width="70"
+                height="70"
+            />
             <div class="dropzone-block" slot="content">
                 <div
                     class="dropzone"
@@ -201,7 +211,18 @@
             buttonText="Neue Offerte erstellen"
             buttonVariant="secondary"
             iconVariant="alt"
-        />
+            iconSize={70}
+            iconFrame={false}
+        >
+            <img
+                slot="icon"
+                src="/offi-icon_erstellen.png"
+                alt=""
+                class="builder-icon"
+                width="70"
+                height="70"
+            />
+        </OptionCard>
     </div>
 </section>
 
@@ -293,6 +314,13 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+    }
+
+    .template-icon,
+    .builder-icon {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
     }
 
     @media (max-width: 640px) {

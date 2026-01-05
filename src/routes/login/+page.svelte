@@ -21,7 +21,11 @@
             description="Melden Sie sich an, speichern Sie Ihre Daten und greifen Sie später erneut auf Ihre Offerten zu."
             href="/login/basic"
             buttonText="Mit Login starten"
-        />
+            iconSize={70}
+            iconFrame={false}
+        >
+            <img slot="icon" src="/offi-icon_login.png" alt="" class="login-icon" width="70" height="70" />
+        </OptionCard>
 
         <OptionCard
             title="Ohne Login fortfahren"
@@ -30,7 +34,18 @@
             buttonText="Ohne Login starten"
             buttonVariant="secondary"
             iconVariant="alt"
-        />
+            iconSize={70}
+            iconFrame={false}
+        >
+            <img
+                slot="icon"
+                src="/offi-icon_ohne-login.png"
+                alt=""
+                class="guest-icon"
+                width="70"
+                height="70"
+            />
+        </OptionCard>
     </div>
 </section>
 
@@ -60,6 +75,13 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 1.25rem;
+    }
+
+    .login-icon,
+    .guest-icon {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
     }
 
     @media (max-width: 640px) {

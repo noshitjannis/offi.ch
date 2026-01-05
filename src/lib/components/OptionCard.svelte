@@ -5,10 +5,15 @@
     export let buttonText;
     export let buttonVariant = "primary";
     export let iconVariant = "default";
+    export let iconSize = 44;
+    export let iconFrame = true;
 </script>
 
 <svelte:element this={href ? "a" : "div"} class="card" href={href ?? undefined}>
-    <div class={`card-icon ${iconVariant === "alt" ? "alt" : ""}`}>
+    <div
+        class={`card-icon ${iconVariant === "alt" ? "alt" : ""} ${!iconFrame ? "no-frame" : ""}`}
+        style={`width: ${iconSize}px; height: ${iconSize}px;`}
+    >
         <slot name="icon">
             <span class="icon-square" aria-hidden="true"></span>
         </slot>
@@ -66,6 +71,10 @@
 
     .card-icon.alt {
         background: #e7f5ff;
+    }
+
+    .card-icon.no-frame {
+        background: transparent;
     }
 
     .icon-square {
