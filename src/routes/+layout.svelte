@@ -98,6 +98,26 @@
   <main class="main">
     <slot />
   </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <img src="/offi_logo.svg" alt="Offi Logo" />
+          <span class="sr-only">Offi Startseite</span>
+        </a>
+        <p class="footer-tagline">Offi macht das Offertenschreiben einfach.</p>
+      </div>
+
+      <div class="footer-links">
+        {#each navLinks as link}
+          <a href={link.href} on:click={(event) => handleNavClick(event, link.href)}>{link.label}</a>
+        {/each}
+        <a href="/login/basic">Login</a>
+        <a href="/builder">Offerte erstellen</a>
+      </div>
+    </div>
+  </footer>
 </div>
 
 <style>
@@ -114,6 +134,8 @@
 
   .app {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   .header {
@@ -279,6 +301,70 @@
     max-width: var(--content-max-width);
     margin: 1rem auto 3rem;
     padding: 0 0.5rem;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .footer {
+    margin-top: auto;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 2.5rem 0;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .footer-inner {
+    width: min(calc(100% - 2rem), var(--content-max-width));
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .footer-brand {
+    display: grid;
+    gap: 0.65rem;
+    align-content: start;
+  }
+
+  .footer .brand img {
+    height: 44px;
+  }
+
+  .footer-tagline {
+    margin: 0;
+    color: #475569;
+    font-size: 0.95rem;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem 1.25rem;
+    justify-content: flex-end;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .footer-links a {
+    color: #0f172a;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+    position: relative;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+
+  .footer-links a:hover {
+    border-color: #e2e8f0;
+    background: #f8fafc;
+    color: #1f5fff;
   }
 
   @media (max-width: 900px) {
@@ -335,6 +421,19 @@
     .nav-cta {
       width: 100%;
       text-align: center;
+    }
+
+    .footer {
+      padding: 2rem 0;
+    }
+
+    .footer-inner {
+      padding: 0 1rem;
+      justify-items: flex-start;
+    }
+
+    .footer-links {
+      justify-content: flex-start;
     }
   }
 </style>

@@ -1,7 +1,7 @@
 <script>
     export let data;
     // WICHTIG: html2pdf nur im Browser laden
-    import { onMount, tick } from "svelte";
+    import { onMount, tick, afterUpdate } from "svelte";
 
     /** @type {any} */
     let html2pdf;
@@ -54,12 +54,19 @@
     onMount(() => {
         let cancelled = false;
 
-        (async () => {
-            const mod = await import("html2pdf.js");
-            if (!cancelled) {
-                html2pdf = mod.default || mod;
+        const loadPdfLib = async () => {
+            try {
+                // @ts-expect-error html2pdf.js ships no module types
+                const mod = await import("html2pdf.js");
+                if (!cancelled) {
+                    html2pdf = mod.default || mod;
+                }
+            } catch (error) {
+                console.error("html2pdf konnte nicht geladen werden", error);
             }
-        })();
+        };
+
+        loadPdfLib();
 
         const handleResize = () => {
             recalcPreviewScale();
@@ -131,16 +138,9 @@
 
     const POSITION_PLACEHOLDERS = [
         {
-            articleNumber: "01",
             description: "Positionsbeschreibung 1",
             quantity: 1,
             unitPrice: 450,
-        },
-        {
-            articleNumber: "02",
-            description: "Positionsbeschreibung 2",
-            quantity: 1,
-            unitPrice: 180,
         },
     ];
 
@@ -203,19 +203,24 @@
     let discountLabel = "";
 
     // Keep position counts conservative so the layout stays within an A4 page
-    const FIRST_PAGE_POSITION_ROWS = 9;
-    const FOLLOWUP_PAGE_POSITION_ROWS = 16;
+    const FIRST_PAGE_POSITION_ROWS = 8;
+    const FOLLOWUP_PAGE_POSITION_ROWS = 14;
     const LAST_PAGE_SAFETY_ROWS = 3;
+    const MAX_TABLE_HEIGHT_PX = 200;
+    const PAGE_OVERFLOW_TOLERANCE_PX = 4;
+    const MAX_OVERFLOW_REBALANCE = 12;
     const TEMPLATE_STORAGE_KEY = "offertio-template";
 
-    // Positionen mit Artikelnummer
-    /** @type {{articleNumber: string; description: string; quantity: string | number; unitPrice: string | number;}[]} */
+    // Positionen
+    /** @type {{description: string; quantity: string | number; unitPrice: string | number;}[]} */
     let positions = POSITION_PLACEHOLDERS.map(() => ({
-        articleNumber: "",
         description: "",
         quantity: "",
         unitPrice: "",
     }));
+    /** @type {{ rows: typeof positions; startIndex: number }[]} */
+    let positionChunks = [];
+    let chunkRebalanceQueued = false;
 
     /**
      * @typedef {"company" | "customer" | "offer" | "contact" | "positions"} AccordionSection
@@ -345,7 +350,6 @@
             const rowErrors = positions
                 .map((pos, idx) => {
                     const missing =
-                        isBlank(pos.articleNumber) ||
                         isBlank(pos.description) ||
                         isBlank(pos.quantity) ||
                         isBlank(pos.unitPrice) ||
@@ -406,7 +410,7 @@
     function addPosition() {
         positions = [
             ...positions,
-            { articleNumber: "", description: "", quantity: "", unitPrice: "" },
+            { description: "", quantity: "", unitPrice: "" },
         ];
     }
 
@@ -469,7 +473,6 @@
     function getPositionPlaceholder(index) {
         return (
             POSITION_PLACEHOLDERS[index] ?? {
-                articleNumber: String(index + 1).padStart(2, "0"),
                 description: "Positionsbeschreibung folgt",
                 quantity: 1,
                 unitPrice: 0,
@@ -562,10 +565,6 @@
     $: resolvedPositions = positions.map((pos, index) => {
         const placeholder = getPositionPlaceholder(index);
         return {
-            articleNumber: textOrPlaceholder(
-                pos.articleNumber,
-                placeholder.articleNumber,
-            ),
             description: textOrPlaceholder(pos.description, placeholder.description),
             quantity: numberOrPlaceholder(pos.quantity, placeholder.quantity),
             unitPrice: numberOrPlaceholder(pos.unitPrice, placeholder.unitPrice),
@@ -687,6 +686,16 @@
         showSaveBlocker = false;
     };
 
+    /**
+     * @param {KeyboardEvent} event
+     */
+    function handleSaveBlockerKeydown(event) {
+        if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            closeSaveBlocker();
+        }
+    }
+
     async function saveDraft() {
         if (!data?.user) {
             showSaveBlocker = true;
@@ -743,9 +752,18 @@
 
     async function downloadJson() {
         await saveCompleted();
+        const positionsForExport = resolvedPositions.map((pos, index) => ({
+            articleNumber: index + 1,
+            description: pos.description,
+            quantity: pos.quantity,
+            unitPrice: pos.unitPrice,
+        }));
         const offer = {
             company: {
                 name: resolvedCompanyName,
+                street: resolvedCompanyStreet,
+                zip: resolvedCompanyZip,
+                city: resolvedCompanyCity,
                 address: resolvedCompanyAddress,
                 email: resolvedCompanyEmail,
                 phone: resolvedCompanyPhone,
@@ -781,9 +799,9 @@
             tax: {
                 vatRate: resolvedVatRate,
                 discountPercent: resolvedDiscountPercent,
-                discountLabel: resolvedDiscountLabel,
+                discountLabel: resolvedDiscountLabel || PLACEHOLDERS.discountLabel,
             },
-            positions: resolvedPositions,
+            positions: positionsForExport,
             totals: {
                 subtotal,
                 discountAmount,
@@ -914,9 +932,8 @@
 
         if (Array.isArray(template.positions)) {
             const mapped = template.positions.map(
-                /** @param {{articleNumber?: string | number; description?: string; quantity?: string | number; unitPrice?: string | number;}} pos */
+                /** @param {{description?: string; quantity?: string | number; unitPrice?: string | number; articleNumber?: string | number;}} pos */
                 (pos) => ({
-                    articleNumber: pos?.articleNumber ?? "",
                     description: pos?.description ?? "",
                     quantity: Number(pos?.quantity ?? 0) || 0,
                     unitPrice: Number(pos?.unitPrice ?? 0) || 0,
@@ -956,7 +973,102 @@
         return chunks;
     }
 
-    $: positionChunks = chunkPositions(resolvedPositions);
+    /**
+     * @param {{ rows: typeof positions; startIndex: number }[]} chunks
+     */
+    function normalizeChunkStartIndices(chunks) {
+        let startIndex = 0;
+        return chunks
+            .filter((chunk) => chunk.rows.length)
+            .map((chunk) => {
+                const normalized = { rows: chunk.rows, startIndex };
+                startIndex += chunk.rows.length;
+                return normalized;
+            });
+    }
+
+    /**
+     * Move overflowing rows onto the next page based on the rendered preview height.
+     * @param {number} iteration
+     */
+    async function rebalanceChunksForOverflow(iteration = 0) {
+        if (iteration > MAX_OVERFLOW_REBALANCE) return;
+        if (typeof document === "undefined") return;
+
+        const previewNode = pdfPreviewEl || document.getElementById("pdf-export");
+        if (!previewNode) return;
+
+        await tick();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        /** @type {HTMLElement[]} */
+        const pages = Array.from(previewNode.querySelectorAll(".pdf-page"));
+        if (!pages.length) return;
+
+        let updatedChunks = positionChunks.map((chunk) => ({
+            startIndex: chunk.startIndex,
+            rows: [...chunk.rows],
+        }));
+        let changed = false;
+
+        pages.forEach((page, index) => {
+            const chunk = updatedChunks[index];
+            if (!chunk) return;
+
+            const tableBody =
+                /** @type {HTMLElement | null} */ (
+                    page.querySelector(".offer-table__body")
+                );
+            const bodyHeight = tableBody?.getBoundingClientRect().height ?? 0;
+            let overflow = bodyHeight - MAX_TABLE_HEIGHT_PX;
+            if (overflow <= PAGE_OVERFLOW_TOLERANCE_PX) return;
+
+            /** @type {HTMLElement[]} */
+            const rowEls = Array.from(
+                page.querySelectorAll(".offer-table__body .offer-row"),
+            );
+            for (let i = rowEls.length - 1; i >= 0; i--) {
+                if (overflow <= PAGE_OVERFLOW_TOLERANCE_PX) break;
+                if (chunk.rows.length <= 1) break;
+                const movedRow = chunk.rows.pop();
+                const rowHeight = rowEls[i]?.offsetHeight ?? 0;
+                overflow -= rowHeight;
+                if (movedRow) {
+                    if (!updatedChunks[index + 1]) {
+                        updatedChunks[index + 1] = { rows: [], startIndex: 0 };
+                    }
+                    updatedChunks[index + 1].rows.unshift(movedRow);
+                    changed = true;
+                }
+            }
+        });
+
+        updatedChunks = normalizeChunkStartIndices(updatedChunks);
+        if (changed) {
+            positionChunks = updatedChunks;
+            return rebalanceChunksForOverflow(iteration + 1);
+        }
+        positionChunks = updatedChunks;
+    }
+
+    function queueChunkRebalance() {
+        if (typeof window === "undefined") return;
+        if (chunkRebalanceQueued) return;
+        chunkRebalanceQueued = true;
+        tick().then(() => {
+            chunkRebalanceQueued = false;
+            rebalanceChunksForOverflow();
+        });
+    }
+
+    afterUpdate(() => {
+        queueChunkRebalance();
+    });
+
+    $: {
+        positionChunks = chunkPositions(resolvedPositions);
+        queueChunkRebalance();
+    }
     $: totalPages = positionChunks.length || 1;
 
     $: if (!initializedFromProfile && data?.profile) {
@@ -1031,9 +1143,8 @@
 
         if (Array.isArray(template.positions) && template.positions.length) {
             positions = template.positions.map(
-                /** @param {{articleNumber?: string; description?: string; quantity?: number | string; unitPrice?: number | string}} pos */
+                /** @param {{description?: string; quantity?: number | string; unitPrice?: number | string; articleNumber?: string;}} pos */
                 (pos) => ({
-                    articleNumber: pos.articleNumber ?? "",
                     description: pos.description ?? "",
                     quantity: Number(pos.quantity ?? 0) || 0,
                     unitPrice: Number(pos.unitPrice ?? 0) || 0,
@@ -1578,11 +1689,6 @@
                             {@const positionPlaceholder = getPositionPlaceholder(index)}
                             <div class="position-row">
                                 <input
-                                    class="pos-artnr"
-                                    placeholder={positionPlaceholder.articleNumber}
-                                    bind:value={pos.articleNumber}
-                                />
-                                <input
                                     class="pos-desc"
                                     placeholder={positionPlaceholder.description}
                                     bind:value={pos.description}
@@ -1658,7 +1764,15 @@
 
                 <div class="download-grid">
                     <div class="download-card">
-                        <div class="card-icon" aria-hidden="true">⬜</div>
+                        <div class="card-icon no-frame" aria-hidden="true">
+                            <img
+                                src="/offi-icon_login.png"
+                                alt=""
+                                class="download-icon"
+                                width="70"
+                                height="70"
+                            />
+                        </div>
                         <h4>PDF herunterladen</h4>
                         <p>
                             Erstellen Sie sofort eine formatierte PDF-Version Ihrer
@@ -1669,7 +1783,15 @@
                         </button>
                     </div>
                     <div class="download-card">
-                        <div class="card-icon" aria-hidden="true">⬜</div>
+                        <div class="card-icon no-frame" aria-hidden="true">
+                            <img
+                                src="/offi-icon_vorlagen.png"
+                                alt=""
+                                class="download-icon"
+                                width="70"
+                                height="70"
+                            />
+                        </div>
                         <h4>JSON herunterladen</h4>
                         <p>
                             Exportieren Sie Ihre Offerte als JSON-Vorlage damit Sie beim nächsten Mal schneller sind.
@@ -1772,9 +1894,8 @@
 
                                 <div class="offer-table" role="table" aria-label="Positionen">
                                     <div class="offer-table__header" role="row">
-                                        <div class="cell right" role="columnheader">Pos.</div>
-                                        <div class="cell" role="columnheader">Art.-Nr.</div>
-                                        <div class="cell" role="columnheader">Bezeichnung</div>
+                                        <div class="cell center" role="columnheader">Pos.</div>
+                                        <div class="cell" role="columnheader">Position</div>
                                         <div class="cell right" role="columnheader">Menge</div>
                                         <div class="cell right" role="columnheader">Einzelpreis</div>
                                         <div class="cell right" role="columnheader">Total</div>
@@ -1786,20 +1907,17 @@
                                                 {@const unit = Number(position.unitPrice) || 0}
                                                 {@const rowTotal = qty * unit}
                                                 <div class="offer-row" role="row">
-                                                    <div class="cell right" role="cell">
+                                                    <div class="cell center pos-col" role="cell">
                                                         {getPositionNumber(pageIndex, rowIndex)}
                                                     </div>
-                                                    <div class="cell" role="cell">
-                                                        {position.articleNumber || "—"}
-                                                    </div>
-                                                    <div class="cell" role="cell">
+                                                    <div class="cell desc-col" role="cell">
                                                         {position.description || "Beschreibung folgt"}
                                                     </div>
-                                                    <div class="cell right" role="cell">{qty}</div>
-                                                    <div class="cell right" role="cell">
+                                                    <div class="cell right qty-col" role="cell">{qty}</div>
+                                                    <div class="cell right unit-col" role="cell">
                                                         {formatCurrency(unit)}
                                                     </div>
-                                                    <div class="cell right" role="cell">
+                                                    <div class="cell right total-col" role="cell">
                                                         {formatCurrency(rowTotal)}
                                                     </div>
                                                 </div>
@@ -1936,9 +2054,8 @@
 
                         <div class="offer-table" role="table" aria-label="Positionen">
                             <div class="offer-table__header" role="row">
-                                <div class="cell right" role="columnheader">Pos.</div>
-                                <div class="cell" role="columnheader">Art.-Nr.</div>
-                                <div class="cell" role="columnheader">Bezeichnung</div>
+                                <div class="cell center" role="columnheader">Pos.</div>
+                                <div class="cell" role="columnheader">Position</div>
                                 <div class="cell right" role="columnheader">Menge</div>
                                 <div class="cell right" role="columnheader">Einzelpreis</div>
                                 <div class="cell right" role="columnheader">Total</div>
@@ -1950,20 +2067,17 @@
                                         {@const unit = Number(position.unitPrice) || 0}
                                         {@const rowTotal = qty * unit}
                                         <div class="offer-row" role="row">
-                                            <div class="cell right" role="cell">
+                                            <div class="cell center pos-col" role="cell">
                                                 {getPositionNumber(pageIndex, rowIndex)}
                                             </div>
-                                            <div class="cell" role="cell">
-                                                {position.articleNumber || "—"}
-                                            </div>
-                                            <div class="cell" role="cell">
+                                            <div class="cell desc-col" role="cell">
                                                 {position.description || "Beschreibung folgt"}
                                             </div>
-                                            <div class="cell right" role="cell">{qty}</div>
-                                            <div class="cell right" role="cell">
+                                            <div class="cell right qty-col" role="cell">{qty}</div>
+                                            <div class="cell right unit-col" role="cell">
                                                 {formatCurrency(unit)}
                                             </div>
-                                            <div class="cell right" role="cell">
+                                            <div class="cell right total-col" role="cell">
                                                 {formatCurrency(rowTotal)}
                                             </div>
                                         </div>
@@ -2032,7 +2146,14 @@
 </section>
 
 {#if showSaveBlocker}
-    <div class="save-blocker-modal-backdrop" on:click={closeSaveBlocker}>
+    <div
+        class="save-blocker-modal-backdrop"
+        role="button"
+        tabindex="0"
+        aria-label="Speicherhinweis schliessen"
+        on:click|self={closeSaveBlocker}
+        on:keydown={handleSaveBlockerKeydown}
+    >
         <div
             class="save-blocker-modal"
             role="dialog"
@@ -2040,7 +2161,6 @@
             aria-labelledby="save-blocker-title"
             aria-describedby="save-blocker-text"
             tabindex="-1"
-            on:click|stopPropagation
         >
             <button class="save-blocker-close" type="button" aria-label="Schliessen" on:click={closeSaveBlocker}>
                 ×
@@ -2174,8 +2294,7 @@
         gap: 0.5rem;
     }
 
-    .save-blocker-actions a,
-    .save-blocker-actions button {
+    .save-blocker-actions a {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -2351,6 +2470,19 @@
         align-self: center;
     }
 
+    .card-icon.no-frame {
+        background: transparent;
+        width: 70px;
+        height: 70px;
+        padding: 0;
+    }
+
+    .download-icon {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+    }
+
     .download-card h4 {
         margin: 0;
         font-size: 1rem;
@@ -2497,6 +2629,11 @@
         box-sizing: border-box;
     }
 
+    input::placeholder {
+        color: #9ca3af;
+        font-size: 0.82rem;
+    }
+
     .grid-2 {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2506,14 +2643,10 @@
 
     .position-row {
         display: grid;
-        grid-template-columns: 0.9fr 2.2fr 0.7fr 0.9fr auto;
-        gap: 0.4rem;
-        margin-bottom: 0.4rem;
+        grid-template-columns: 2.5fr 0.8fr 1fr auto;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
         align-items: center;
-    }
-
-    .pos-artnr {
-        text-align: left;
     }
 
     .pos-qty,
@@ -2798,43 +2931,37 @@
 
     .offer-table {
         width: 100%;
-        margin-bottom: 0.8rem;
+        margin: 0 0 1.2rem;
         font-size: 0.9rem;
         border: 1px solid #e5e7eb;
-        border-radius: 6px;
+        border-radius: 0;
         overflow: hidden;
         background: #fff;
         font-variant-numeric: tabular-nums;
+        box-shadow: none;
     }
 
     .offer-table__header,
     .offer-row {
         display: grid;
-        grid-template-columns:
-            50px
-            110px
-            1fr
-            80px
-            120px
-            120px;
-        column-gap: 0.5rem;
-        align-items: center;
-        padding: 0.4rem 0.5rem;
+        grid-template-columns: 60px 1.9fr 0.7fr 0.95fr 1fr;
+        gap: 0.6rem;
+        align-items: start;
+        padding: 0.6rem 0.85rem;
         break-inside: avoid;
         page-break-inside: avoid;
-        position: relative;
     }
 
     .offer-table__header {
         font-weight: 700;
-        border-bottom: 1.5px solid #dfe4ea;
-        background: #f4f7fb;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
         color: #0f172a;
-        align-items: end;
+        line-height: 1.2;
     }
 
     .offer-table__body .offer-row {
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #eef2f7;
     }
 
     .offer-table__body .offer-row:last-child {
@@ -2845,24 +2972,12 @@
         grid-template-columns: 1fr;
         text-align: left;
         color: #6b7280;
+        padding: 0.8rem 0.85rem;
     }
 
     .offer-table .cell {
-        white-space: normal;
+        line-height: 1.45;
         word-break: break-word;
-        line-height: 1.35;
-        padding-right: 0.2rem;
-        border-right: 1px solid #e5e7eb;
-    }
-
-    .offer-table__header .cell {
-        white-space: nowrap;
-        overflow: visible;
-        text-overflow: clip;
-        display: flex;
-        align-items: flex-end;
-        align-self: end;
-        line-height: 1.1;
     }
 
     .offer-table .cell.right {
@@ -2870,22 +2985,21 @@
         white-space: nowrap;
     }
 
-    .offer-table .cell:last-child {
-        border-right: none;
-    }
-
-    /* left align the position column explicitly */
-    .offer-table__header .cell:first-child,
-    .offer-row .cell:first-child {
-        text-align: left;
-    }
-
-    /* emphasize total column */
-    .offer-table__header .cell:last-child {
+    .offer-table .cell.center {
+        text-align: center;
         font-weight: 700;
     }
 
-    .offer-row .cell:last-child {
+    .desc-col {
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .pos-col {
+        color: #0f172a;
+    }
+
+    .total-col {
         font-weight: 700;
     }
 

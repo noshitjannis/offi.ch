@@ -1,7 +1,7 @@
 <script lang="ts">
   export let data;
 
-  const primaryCta = data?.user ? "/builder" : "/login/register";
+  const primaryCta = "/login";
   const secondaryCta = "/guest";
   const accountHref = data?.user ? "/account" : "/login/basic";
 </script>

@@ -4,6 +4,7 @@
     import OptionCard from "$lib/components/OptionCard.svelte";
 
     const TEMPLATE_STORAGE_KEY = "offertio-template";
+    const DISCOUNT_LABEL_FALLBACK = "Rabatt";
     const requiredPaths = [
         "company.name",
         "company.address",
@@ -52,24 +53,88 @@
     }
 
     /** @param {any} data */
+    function deriveCompanyAddress(data) {
+        const directAddress = getValueAtPath(data, "company.address");
+        if (typeof directAddress === "string" && directAddress.trim()) {
+            return directAddress.trim();
+        }
+
+        const street = getValueAtPath(data, "company.street");
+        const zip = getValueAtPath(data, "company.zip");
+        const city = getValueAtPath(data, "company.city");
+        const lineTwo = `${zip ?? ""} ${city ?? ""}`.trim();
+        const lines = [
+            typeof street === "string" ? street.trim() : "",
+            lineTwo,
+        ].filter((line) => line);
+
+        return lines.length ? lines.join("\n") : null;
+    }
+
+    /** @param {any} data */
+    function normalizeTemplate(data) {
+        if (!data || typeof data !== "object") return null;
+
+        const normalizedPositions = Array.isArray(data.positions)
+            ? data.positions.map(
+                  /** @param {{ articleNumber?: unknown; description?: unknown; quantity?: unknown; unitPrice?: unknown }} pos */
+                  (pos, index) => {
+                      const safePos =
+                          pos && typeof pos === "object"
+                              ? pos
+                              : /** @type {Record<string, unknown>} */ ({});
+                      return {
+                          ...safePos,
+                          articleNumber: safePos.articleNumber ?? index + 1,
+                      };
+                  },
+              )
+            : [];
+
+        return {
+            ...data,
+            company: {
+                ...(data.company || {}),
+                address: deriveCompanyAddress(data),
+            },
+            tax:
+                data.tax && typeof data.tax === "object"
+                    ? {
+                          ...data.tax,
+                          discountLabel:
+                              data.tax.discountLabel === undefined ||
+                              data.tax.discountLabel === null ||
+                              data.tax.discountLabel === ""
+                                  ? DISCOUNT_LABEL_FALLBACK
+                                  : data.tax.discountLabel,
+                      }
+                    : { discountLabel: DISCOUNT_LABEL_FALLBACK },
+            positions: normalizedPositions,
+        };
+    }
+
+    /** @param {any} data */
     function isValidTemplate(data) {
-        if (!data || typeof data !== "object") return false;
+        const template = normalizeTemplate(data);
+        if (!template || typeof template !== "object") return false;
+
+        if (!template.company?.address) return false;
 
         for (const path of requiredPaths) {
-            const value = getValueAtPath(data, path);
+            const value = getValueAtPath(template, path);
             if (value === undefined || value === null || value === "") {
                 return false;
             }
         }
 
-        if (!Array.isArray(data.positions) || !data.positions.length) return false;
+        if (!Array.isArray(template.positions) || !template.positions.length)
+            return false;
 
-        return data.positions.every(
-            /** @param {{ description?: unknown; articleNumber?: unknown; quantity?: unknown; unitPrice?: unknown }} pos */
+        return template.positions.every(
+            /** @param {{ description?: unknown; quantity?: unknown; unitPrice?: unknown }} pos */
             (pos) =>
                 pos &&
                 typeof pos.description === "string" &&
-                "articleNumber" in pos &&
                 "quantity" in pos &&
                 "unitPrice" in pos,
         );
@@ -83,12 +148,16 @@
             const text = await file.text();
             const data = JSON.parse(text);
 
-            if (!isValidTemplate(data)) {
+            const normalizedTemplate = normalizeTemplate(data);
+            if (!isValidTemplate(normalizedTemplate)) {
                 uploadError = "Die Datei entspricht nicht dem Offertino-Format.";
                 return;
             }
 
-            localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(
+                TEMPLATE_STORAGE_KEY,
+                JSON.stringify(normalizedTemplate),
+            );
             await goto("/builder");
         } catch (error) {
             console.error("Fehler beim Verarbeiten der Vorlage", error);
