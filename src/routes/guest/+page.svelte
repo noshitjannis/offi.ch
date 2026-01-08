@@ -77,7 +77,7 @@
 
         const normalizedPositions = Array.isArray(data.positions)
             ? data.positions.map(
-                  /** @param {{ articleNumber?: unknown; description?: unknown; quantity?: unknown; unitPrice?: unknown }} pos */
+                  /** @param {{ articleNumber?: unknown; description?: unknown; quantity?: unknown; unitPrice?: unknown }} pos @param {number} index */
                   (pos, index) => {
                       const safePos =
                           pos && typeof pos === "object"

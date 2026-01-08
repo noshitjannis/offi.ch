@@ -16,11 +16,8 @@
 7. [KI‑Deklaration](#7-ki‑deklaration)
 8. [Anhang [Optional]](#8-anhang-optional)
 
-> **Hinweis:** Massgeblich sind die im **Unterricht** und auf **Moodle** kommunizierten Anforderungen.
 
-<!-- WICHTIG: DIE KAPITELSTRUKTUR DARF NICHT VERÄNDERT WERDEN! -->
 
-<!-- Diese Vorlage ist für eine README.md im Repository gedacht. Abschnitte mit [Optional] können weggelassen werden, wenn in den Übungen nichts anderes verlangt wird. -->
 
 ## 1. Einordnung & Zielsetzung
 Kurz beschreiben, welches Problem adressiert wird und welches Ergebnis angestrebt ist.
