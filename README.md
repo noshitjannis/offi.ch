@@ -269,7 +269,7 @@ Workflow:
 - Logo und Maskottchen „Offi“: eigene Erstellung in Adobe Illustrator (Originalwerk).
 - KI-generierte Variationen: erstellt mit den oben genannten Tools; genutzt als Varianten innerhalb des Projekts.
 - Restliche Icons sind alle selber gemacht (Pfeil im Profil) oder Emojis.
-- Es wurden kostenlose und öfffentlich zugängliche Fonts verwenden.
+- Es wurden kostenlose und öfffentlich zugängliche Fonts verwenden. 
 
 ## 8. Anhang [Optional]
 Beispiele:
