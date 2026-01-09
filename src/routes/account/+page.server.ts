@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const db = await getDb();
 	const record = await db.collection("users").findOne({
-		// string ids in our setup
 		_id: locals.user.id
 	} as Record<string, unknown>);
 

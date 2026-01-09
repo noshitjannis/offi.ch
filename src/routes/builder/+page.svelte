@@ -56,7 +56,6 @@
 
         const loadPdfLib = async () => {
             try {
-                // @ts-expect-error html2pdf.js ships no module types
                 const mod = await import("html2pdf.js");
                 if (!cancelled) {
                     html2pdf = mod.default || mod;
@@ -202,12 +201,8 @@
     let discountPercent = "";
     let discountLabel = "";
 
-    // Keep position counts conservative so the layout stays within an A4 page
-    const FIRST_PAGE_POSITION_ROWS = 8;
-    const FOLLOWUP_PAGE_POSITION_ROWS = 14;
-    const LAST_PAGE_SAFETY_ROWS = 3;
-    const MAX_TABLE_HEIGHT_PX = 200;
-    const PAGE_OVERFLOW_TOLERANCE_PX = 4;
+    // Dynamically move rows to the next page when overflow happens.
+    const PAGE_OVERFLOW_TOLERANCE_PX = 1;
     const MAX_OVERFLOW_REBALANCE = 12;
     const TEMPLATE_STORAGE_KEY = "offertio-template";
 
@@ -951,26 +946,7 @@
      */
     function chunkPositions(list) {
         if (!list.length) return [{ rows: [], startIndex: 0 }];
-        const chunks = [];
-        let consumed = 0;
-        let isFirstPage = true;
-
-        while (consumed < list.length) {
-            const baseSize = isFirstPage
-                ? FIRST_PAGE_POSITION_ROWS
-                : FOLLOWUP_PAGE_POSITION_ROWS;
-            const remaining = list.length - consumed;
-            const capacity =
-                remaining <= baseSize
-                    ? Math.max(1, baseSize - LAST_PAGE_SAFETY_ROWS)
-                    : baseSize;
-            const rows = list.slice(consumed, consumed + capacity);
-            chunks.push({ rows, startIndex: consumed });
-            consumed += rows.length;
-            isFirstPage = false;
-        }
-
-        return chunks;
+        return [{ rows: [...list], startIndex: 0 }];
     }
 
     /**
@@ -988,14 +964,27 @@
     }
 
     /**
-     * Move overflowing rows onto the next page based on the rendered preview height.
+     * @param {HTMLElement} page
+     */
+    function getPageOverflowPx(page) {
+        const pageRect = page.getBoundingClientRect();
+        const tail = page.querySelector(".pdf-footer") || page.lastElementChild;
+        if (!tail) return 0;
+        const tailRect = tail.getBoundingClientRect();
+        const overflow = tailRect.bottom - pageRect.bottom;
+        return overflow > 0 ? overflow : 0;
+    }
+
+    /**
      * @param {number} iteration
      */
     async function rebalanceChunksForOverflow(iteration = 0) {
         if (iteration > MAX_OVERFLOW_REBALANCE) return;
         if (typeof document === "undefined") return;
 
-        const previewNode = pdfPreviewEl || document.getElementById("pdf-export");
+        const previewNode = isExporting
+            ? document.getElementById("pdf-export")
+            : pdfPreviewEl || document.getElementById("pdf-export");
         if (!previewNode) return;
 
         await tick();
@@ -1015,12 +1004,7 @@
             const chunk = updatedChunks[index];
             if (!chunk) return;
 
-            const tableBody =
-                /** @type {HTMLElement | null} */ (
-                    page.querySelector(".offer-table__body")
-                );
-            const bodyHeight = tableBody?.getBoundingClientRect().height ?? 0;
-            let overflow = bodyHeight - MAX_TABLE_HEIGHT_PX;
+            let overflow = getPageOverflowPx(page);
             if (overflow <= PAGE_OVERFLOW_TOLERANCE_PX) return;
 
             /** @type {HTMLElement[]} */
@@ -1031,7 +1015,7 @@
                 if (overflow <= PAGE_OVERFLOW_TOLERANCE_PX) break;
                 if (chunk.rows.length <= 1) break;
                 const movedRow = chunk.rows.pop();
-                const rowHeight = rowEls[i]?.offsetHeight ?? 0;
+                const rowHeight = rowEls[i]?.getBoundingClientRect().height ?? 0;
                 overflow -= rowHeight;
                 if (movedRow) {
                     if (!updatedChunks[index + 1]) {
@@ -1720,7 +1704,7 @@
                         {/each}
 
                         <button type="button" class="small" on:click={addPosition}>
-                            + Position hinzufuegen
+                            + Position hinzufügen
                         </button>
 
                         {#if sectionErrors.positions.length}
@@ -2811,6 +2795,10 @@
         position: absolute;
         top: 0;
         left: 50%;
+    }
+
+    .pdf-page > * {
+        flex-shrink: 0;
     }
 
     #pdf-preview.exporting .pdf-page {
