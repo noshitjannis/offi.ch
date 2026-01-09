@@ -141,7 +141,7 @@ export const actions: Actions = {
 			{
 				_id: draftId,
 				userId: locals.user.id
-			},
+			} as Record<string, unknown>,
 			{ $set: { name, updatedAt: new Date() } }
 		);
 
@@ -165,7 +165,7 @@ export const actions: Actions = {
 			{
 				_id: offerId,
 				userId: locals.user.id
-			},
+			} as Record<string, unknown>,
 			{ $set: { name } }
 		);
 
