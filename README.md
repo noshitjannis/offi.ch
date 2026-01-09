@@ -247,7 +247,7 @@ Qualitätssicherung:
 - Eigenständig erstellt: Logo und Maskottchen Offi als Original in Adobe Illustrator.
 
 ### Reflexion
-Nutzen:
+Nutzen: 
 - Schnellere Iteration bei Designvarianten und beim Debugging.
 - Bessere Promptqualität durch Iteration (GPT -> Codex -> Umsetzung).
 
