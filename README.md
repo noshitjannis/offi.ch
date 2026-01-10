@@ -45,7 +45,7 @@ Wem nützt die Lösung, wer ist beteiligt oder betroffen?
 
 ## 3. Anforderungen & Umfang
 Beschreibt den verbindlichen Umfang gemäss Übungen und allfällige Erweiterungen.
-- **Kernfunktionalität (Mindestumfang):** (aus den umgesetzten Workflows abgeleitet)
+- **Kernfunktionalität (Mindestumfang):** 
   - Landing mit klarer Value Proposition und CTA (Gast starten oder einloggen/registrieren)
   - Auth-Flow: Registrierung, Login, Logout; Session-basiert
   - Gastmodus: Offerte erstellen und exportieren, aber keine serverseitige Speicherung
@@ -193,8 +193,6 @@ Fasst die technische Realisierung zusammen.
 ## 5. Erweiterungen [Optional]
 Dokumentiert Erweiterungen über den Mindestumfang hinaus.
 
-Der Mindestumfang (gemass Übung 10 / Woche 11) verlangt u.a. **einen klaren Hauptworkflow**, **mind. eine Uebersichtsseite mit DB-Daten**, **mind. eine Erfassungs-/Bearbeitungsseite**, **MongoDB-Persistenz**, sowie ein **Deployment**. Erweiterungen sind folglich Funktionen/Optimierungen, die ueber diese Baseline hinausgehen (z.B. zusaetzliche Workflows, erweiterte Verwaltung, Export-Qualitaet, Templates). 
-
 - **Beschreibung & Nutzen:**
   - **Mehrere Workflows statt nur „ein Hauptworkflow“:** Neben dem Kernfluss „Offerte erstellen -> Export“ gibt es getrennte Flows für **Gastmodus vs. Account**, sowie den **Lifecycle Draft -> Offer** und **Offer -> Draft** (zum späteren Bearbeiten). Das macht Offi näher an einer realen Anwendung.
   - **Erweiterte Verwaltung im Account:** Drafts und Offers können nicht nur angezeigt werden, sondern auch **umbenannt, gelöscht und gezielt weiterbearbeitet** werden (inkl. Modals/Inline-Aktionen). Das geht über ein reines „List aus DB“ hinaus.
@@ -212,9 +210,53 @@ Der Mindestumfang (gemass Übung 10 / Woche 11) verlangt u.a. **einen klaren Hau
 
 ## 6. Projektorganisation [Optional]
 Beispiele:
-- **Repository & Struktur:** Dieses Repository enthält den SvelteKit-Prototyp inkl. statischer Assets (z.B. PDFs im `static/` Ordner).
-- **Issue-Management:** leichtgewichtig; Bugs/ToDos wurden direkt aus Tests abgeleitet und umgesetzt.
-- **Commit-Praxis:** sprechende Commits; Codex-Unterstützung für Commit Messages (siehe KI-Deklaration).
+
+- **Repository & Struktur:**
+Das Projekt wird in einem öffentlichen GitHub-Repository verwaltet:
+https://github.com/noshitjannis/offi.ch
+
+Grobe Struktur (relevante Ordner/Dateien):
+  /src
+  /routes
+  / → Landing / Einstieg (Gast vs. Login)
+  /login → Login
+  /register → Registrierung
+  /builder → Offert-Builder (Formular + A4-Preview + Export)
+  /account → Profil + Verwaltung (Drafts / Offers)
+  +layout.svelte
+  +page.svelte
+  /lib
+  /components → Wiederverwendbare UI-Komponenten (z.B. Cards/Accordions)
+  /server → Server-Utilities (z.B. Auth/DB-Helper, je nach Implementierung)
+  /static → Statische Assets (z.B. Skizzen- und Eval-PDFs, Logos)
+  README.md
+  package.json
+  svelte.config.js
+  vite.config.js
+
+
+**Beschreibung:**
+- Alle Oberflaechen sind als SvelteKit-Routen im Ordner `/src/routes` organisiert.
+- Wiederverwendbare UI-Elemente liegen in `/src/lib` (insbesondere Komponenten).
+- Statische Projektartefakte (Skizze, Usability-Evaluationen, Logos) liegen im Ordner `/static`.
+- Die Projektdokumentation ist als `README.md` im Root abgelegt (gemass Vorgaben).
+
+- **Issue-Management:**
+Das Issue-Management wurde bewusst schlank gehalten. Issues/ToDos entstanden vor allem aus:
+- Findings aus der Usability Evaluation (z.B. Platzhalterstrategie, Logo-Upload UX)
+- Bugs/UX-Feinschliff während der manuellen End-to-End Tests
+- Erweiterungen am Workflow (Draft/Offer Lifecycle, Export-Qualität)
+
+Beispiele für typische Issue-Kategorien:
+- PDF-Export: Seitenumbrueche/Overflow und Konsistenz zwischen Preview und PDF
+- Builder-UX: Pflichtfelder/Validierungen, Platzhalter/Defaults, Formularstruktur
+- Account: Drafts/Offers verwalten (Rename/Delete), Offer -> Draft zum Bearbeiten
+- Deployment/Config: Env Vars (Mongo URI), Build/Deploy Stabilität
+
+- **Commit-Praxis:**
+Die Entwicklung erfolgte iterativ mit regelmässigen, sprechenden Commit-Messages, die jeweils klar beschreiben, was geändert wurde (Feature/Bugfix/Refactor).
+Bei Commits wurde Codex für Vorschläge zu Commit-Formulierungen genutzt (siehe KI-Deklaration), die Inhalte wurden jedoch manuell geprueft.
+
 
 ## 7. KI-Deklaration
 Die folgende Deklaration ist verpflichtend und beschreibt den Einsatz von KI im Projekt.
