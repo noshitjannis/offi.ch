@@ -36,7 +36,7 @@ Kurz beschreiben, welches Problem adressiert wird und welches Ergebnis angestreb
 Wem nützt die Lösung, wer ist beteiligt oder betroffen?
 - **Primäre Zielgruppe:** Schweizer KMU, Startups und Freelancer, die regelmässig Offerten erstellen und CH-Spezifika wie CHF, MWST und Bankdaten direkt im Dokument brauchen.
 - **Weitere Stakeholder [Optional]:** 
-  - (Projektkontext) Dozierende/Assistenz im Modul Prototyping
+  - Dozierende im Modul Prototyping
   - Potenzielle interne Admins/Teammitglieder (falls Offi später als SaaS erweitert wird)
 - **Annahmen [Optional]:**
   - Nutzende bevorzugen einen geführten Builder mit sofortigem A4-Preview gegenüber Word/Excel.
@@ -89,7 +89,7 @@ Die Durchführung erfolgt phasenbasiert; dokumentieren Sie die wichtigsten Ergeb
   - `static/jm_abgabe9.pdf`
 
   Unterschiede kurz:
-  - Stepper reduziert sichtbare Komplexitaet pro Schritt, kann aber Preview/Export-Checks verzögern.
+  - Stepper reduziert sichtbare Komplexität pro Schritt, kann aber Preview/Export-Checks verzögern.
   - Ein-Seiten-Builder erlaubt ständiges A4-Preview und schnellere Iteration (Felder anpassen -> Preview sofort).
 
 ### 4.3 Decide
@@ -137,7 +137,7 @@ Beschreibt die Gestaltung und Interaktion.
 
 #### 4.4.2. Umsetzung (Technik)
 Fasst die technische Realisierung zusammen.
-- **Technologie-Stack:** SvelteKit (Svelte), TypeScript, MongoDB, Auth via Lucia (mit Mongo-Adapter), clientseitiger PDF-Export via html2pdf.js/jspdf.
+- **Technologie-Stack:** SvelteKit (Svelte), TypeScript, MongoDB, Auth via Lucia (mit Mongo-Adapter), clientseitiger PDF-Export via html2pdf.js.
 - **Tooling:** 
   - Lokale Entwicklung: Node.js + npm (Dev-Server)
   - Deployment: Netlify
